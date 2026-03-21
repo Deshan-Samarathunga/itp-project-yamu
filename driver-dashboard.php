@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     carzo_start_session();
-    carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
     include 'includes/config.php';
     $page_title = "Driver Dashboard";
     $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
@@ -145,7 +145,7 @@
                     </div>
                     <div class="form-group">
                         <label>Account Type:</label>
-                        <input type="text" value="<?php echo ucfirst($_SESSION['user']['role']) ?>" readonly />
+                        <input type="text" value="<?php echo carzo_e(carzo_role_label(carzo_current_user_role())); ?>" readonly />
                     </div>
                     <div class="form-group">
                         <label>Account Status:</label>
@@ -178,3 +178,6 @@
     <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

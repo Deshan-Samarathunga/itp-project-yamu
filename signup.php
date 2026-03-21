@@ -46,6 +46,7 @@
                             <select name="role" id="role" onchange="toggleDriverFields()" required>
                                 <option value="customer">Customer</option>
                                 <option value="driver">Driver</option>
+                                <option value="staff">Staff</option>
                             </select>
                         </div>
                         <div class="form-group">

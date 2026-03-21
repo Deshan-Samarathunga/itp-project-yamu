@@ -43,7 +43,7 @@
                                     <p>Remember Me</p>
                                 </label>
                             </div>
-                            <a href="#">Forgot password?</a>
+                            <a href="forgot-password.php">Forgot password?</a>
                         </div>
                         <div class="form-submit">
                             <input type="submit" value="Sign In" class="btn main-btn" name="signin" id="signin" />

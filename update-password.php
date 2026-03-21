@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     carzo_start_session();
-    carzo_require_user_roles(['customer', 'driver'], 'signin.php', ['active', 'pending'], 'index.php');
+    carzo_require_user_roles(['customer', 'driver', 'staff', 'admin'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
     $page_title = "Update Password"; 
 ?>
 

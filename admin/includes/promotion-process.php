@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/promotion-management.php';
 carzo_start_session();
-carzo_require_admin('../index.php');
+carzo_require_admin('../index.php', '../access-denied.php');
 include 'config.php';
 
 function carzo_admin_promotion_payload($conn)
@@ -93,3 +93,4 @@ if (isset($_GET['deletePromotion'])) {
 
     carzo_redirect_with_message('../promotions.php', 'msg', 'Promotion deleted successfully');
 }
+

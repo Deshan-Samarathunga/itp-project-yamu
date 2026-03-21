@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/dispute-management.php';
 carzo_start_session();
-carzo_require_admin('../index.php');
+carzo_require_admin('../index.php', '../access-denied.php');
 include 'config.php';
 
 if (isset($_POST['updateDispute'])) {
@@ -27,3 +27,4 @@ if (isset($_POST['updateDispute'])) {
 
     carzo_redirect_with_message('../dispute-view.php?complaint_id=' . $complaintId, 'msg', 'Dispute updated successfully');
 }
+

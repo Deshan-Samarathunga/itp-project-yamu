@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/vehicle-management.php';
 carzo_start_session();
-carzo_require_admin('../index.php');
+carzo_require_admin('../index.php', '../access-denied.php');
 include 'config.php';
 
 $adminUserId = (int) ($_SESSION['admin']['user_id'] ?? $_SESSION['admin']['admin_id'] ?? 0);
@@ -53,3 +53,4 @@ if (isset($_GET['vehicle_id'])) {
 
     carzo_redirect_with_message('../vehicle.php', 'msg', 'Vehicle deleted successfully');
 }
+

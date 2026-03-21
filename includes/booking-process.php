@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/booking-management.php';
 carzo_start_session();
-carzo_require_user_roles(['customer'], '../signin.php', ['active'], '../index.php');
+carzo_require_user_roles(['customer'], '../signin.php', ['active', 'verified'], '../access-denied.php');
 include 'config.php';
 
 $customerId = (int) ($_SESSION['user']['user_ID'] ?? 0);
@@ -46,3 +46,6 @@ if (isset($_GET['cancelBooking'])) {
 
     carzo_redirect_with_message('../my-booking.php', 'msg', 'Booking cancelled successfully');
 }
+
+
+

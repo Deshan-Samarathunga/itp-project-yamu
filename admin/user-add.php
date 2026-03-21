@@ -61,7 +61,10 @@
                             <select name="account_status" id="account_status">
                                 <option value="active">Active</option>
                                 <option value="pending">Pending</option>
+                                <option value="verified">Verified</option>
                                 <option value="suspended">Suspended</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="deactivated">Deactivated</option>
                             </select>
                         </div>
                         <div class="form-group" id="verification-row">
@@ -71,6 +74,7 @@
                                 <option value="pending">Pending</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
+                                <option value="unverified">Unverified</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -130,6 +134,18 @@
                 driverFields.style.display = "block";
                 verificationRow.style.display = "flex";
                 licenseInput.required = true;
+
+                if (accountStatus.value === "active") {
+                    accountStatus.value = "pending";
+                }
+
+                if (verificationStatus.value === "verified") {
+                    verificationStatus.value = "pending";
+                }
+            } else if (role === "staff") {
+                driverFields.style.display = "none";
+                verificationRow.style.display = "flex";
+                licenseInput.required = false;
 
                 if (accountStatus.value === "active") {
                     accountStatus.value = "pending";

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 carzo_start_session();
-carzo_require_admin('../index.php');
+carzo_require_admin('../index.php', '../access-denied.php');
 include 'config.php';
 
 function carzo_admin_avatar_upload($currentAvatar = 'avatar.png')
@@ -36,7 +36,7 @@ function carzo_sync_current_admin_session($conn, $userId)
     if ($sessionUserId === $userId || ($sessionEmail !== '' && $sessionEmail === $updatedUser['email'])) {
         $updatedRole = carzo_normalize_role($updatedUser['role'] ?? 'customer');
 
-        if (!carzo_is_admin_panel_role($updatedRole) || carzo_normalize_account_status($updatedUser['account_status'] ?? 'active', $updatedRole) === 'suspended') {
+        if (!carzo_is_admin_panel_role($updatedRole) || carzo_is_role_blocked(carzo_normalize_account_status($updatedUser['account_status'] ?? 'active', $updatedRole))) {
             unset($_SESSION['admin']);
             return;
         }
@@ -53,16 +53,28 @@ if (isset($_POST['createUser']) || isset($_POST['updateUser'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'] ?? '';
     $role = carzo_normalize_role($_POST['role'] ?? 'customer');
-    $accountStatus = carzo_normalize_account_status($_POST['account_status'] ?? ($role === 'driver' ? 'pending' : 'active'), $role);
+    $accountStatus = carzo_normalize_account_status($_POST['account_status'] ?? carzo_default_account_status_for_role($role), $role);
     $phone = trim($_POST['phone'] ?? '');
     $dob = trim($_POST['dob'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $licenseOrNic = trim($_POST['license_or_nic'] ?? '');
-    $verificationStatus = carzo_normalize_verification_status($_POST['verification_status'] ?? ($role === 'driver' ? 'pending' : 'verified'), $role);
+    $verificationStatus = carzo_normalize_verification_status($_POST['verification_status'] ?? carzo_default_verification_status_for_role($role), $role);
     $bio = trim($_POST['bio'] ?? '');
 
-    if ($role !== 'driver') {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        carzo_redirect_with_message($isUpdate ? '../user-edit.php?user_id=' . $userId : '../user-add.php', 'error', 'Please enter a valid email address');
+    }
+
+    if (!$isUpdate && strlen($password) < 8) {
+        carzo_redirect_with_message('../user-add.php', 'error', 'Password must contain at least 8 characters');
+    }
+
+    if ($isUpdate && $password !== '' && strlen($password) < 8) {
+        carzo_redirect_with_message('../user-edit.php?user_id=' . $userId, 'error', 'Password must contain at least 8 characters');
+    }
+
+    if (!in_array($role, ['driver', 'staff'], true)) {
         $licenseOrNic = null;
         $verificationStatus = 'verified';
         $bio = $bio !== '' ? $bio : null;
@@ -184,6 +196,16 @@ if (isset($_POST['createUser']) || isset($_POST['updateUser'])) {
         }
 
         $stmt->close();
+        $currentAdminUserId = (int) ($_SESSION['admin']['user_id'] ?? 0);
+        if (carzo_table_exists($conn, 'user_roles')) {
+            carzo_upsert_user_role_assignment($conn, $userId, $role, $accountStatus, $verificationStatus, true, $currentAdminUserId ?: null, 'Updated from admin user form');
+            carzo_ensure_role_profile_row($conn, $userId, $role, carzo_fetch_user_by_id($conn, $userId));
+            if ($role !== 'customer') {
+                carzo_upsert_user_role_assignment($conn, $userId, 'customer', 'active', 'verified', false, $currentAdminUserId ?: null, 'Default customer role');
+                carzo_ensure_role_profile_row($conn, $userId, 'customer', carzo_fetch_user_by_id($conn, $userId));
+            }
+            carzo_sync_user_primary_role_snapshot($conn, $userId);
+        }
         carzo_sync_current_admin_session($conn, $userId);
         carzo_redirect_with_message('../users.php', 'msg', 'User updated successfully');
     }
@@ -221,7 +243,22 @@ if (isset($_POST['createUser']) || isset($_POST['updateUser'])) {
         carzo_redirect_with_message('../user-add.php', 'error', 'User creation failed');
     }
 
+    $newUserId = (int) $stmt->insert_id;
     $stmt->close();
+
+    $currentAdminUserId = (int) ($_SESSION['admin']['user_id'] ?? 0);
+    if (carzo_table_exists($conn, 'user_roles')) {
+        carzo_upsert_user_role_assignment($conn, $newUserId, $role, $accountStatus, $verificationStatus, true, $currentAdminUserId ?: null, 'Created from admin user form');
+        $createdUser = carzo_fetch_user_by_id($conn, $newUserId);
+        carzo_ensure_role_profile_row($conn, $newUserId, $role, $createdUser);
+
+        if ($role !== 'customer') {
+            carzo_upsert_user_role_assignment($conn, $newUserId, 'customer', 'active', 'verified', false, $currentAdminUserId ?: null, 'Default customer role');
+            carzo_ensure_role_profile_row($conn, $newUserId, 'customer', $createdUser);
+        }
+
+        carzo_sync_user_primary_role_snapshot($conn, $newUserId);
+    }
     carzo_redirect_with_message('../users.php', 'msg', 'User created successfully');
 }
 
@@ -240,6 +277,25 @@ if (isset($_GET['action'], $_GET['user_id'])) {
     if ($action === 'delete') {
         if ($currentAdminUserId === $userId || ($currentAdminEmail !== '' && $currentAdminEmail === $user['email'])) {
             carzo_redirect_with_message('../users.php', 'error', 'You cannot delete the account you are currently using');
+        }
+
+        if (carzo_table_exists($conn, 'user_roles')) {
+            $conn->query('DELETE FROM user_roles WHERE user_id = ' . $userId);
+        }
+        if (carzo_table_exists($conn, 'customer_profiles')) {
+            $conn->query('DELETE FROM customer_profiles WHERE user_id = ' . $userId);
+        }
+        if (carzo_table_exists($conn, 'driver_profiles')) {
+            $conn->query('DELETE FROM driver_profiles WHERE user_id = ' . $userId);
+        }
+        if (carzo_table_exists($conn, 'staff_profiles')) {
+            $conn->query('DELETE FROM staff_profiles WHERE user_id = ' . $userId);
+        }
+        if (carzo_table_exists($conn, 'admin_profiles')) {
+            $conn->query('DELETE FROM admin_profiles WHERE user_id = ' . $userId);
+        }
+        if (carzo_table_exists($conn, 'password_resets')) {
+            $conn->query('DELETE FROM password_resets WHERE user_id = ' . $userId);
         }
 
         $stmt = $conn->prepare('DELETE FROM users WHERE user_id = ?');
@@ -265,6 +321,15 @@ if (isset($_GET['action'], $_GET['user_id'])) {
         }
 
         $stmt->close();
+        if (carzo_table_exists($conn, 'user_roles')) {
+            $roleStmt = $conn->prepare('UPDATE user_roles SET role_status = ?, updated_at = NOW() WHERE user_id = ?');
+            if ($roleStmt) {
+                $roleStmt->bind_param('si', $newStatus, $userId);
+                $roleStmt->execute();
+                $roleStmt->close();
+            }
+            carzo_sync_user_primary_role_snapshot($conn, $userId);
+        }
         carzo_sync_current_admin_session($conn, $userId);
         carzo_redirect_with_message('../users.php', 'msg', 'Account status updated successfully');
     }
@@ -286,6 +351,18 @@ if (isset($_GET['action'], $_GET['user_id'])) {
         }
 
         $stmt->close();
+        if (carzo_table_exists($conn, 'user_roles')) {
+            carzo_upsert_user_role_assignment($conn, $userId, 'driver', $newAccountStatus, $newVerificationStatus, false, (int) ($_SESSION['admin']['user_id'] ?? 0), 'Updated from quick driver verification action');
+            if (carzo_table_exists($conn, 'driver_profiles')) {
+                $driverStmt = $conn->prepare('UPDATE driver_profiles SET verification_status = ?, verified_at = CASE WHEN ? IN (\'approved\', \'verified\') THEN NOW() ELSE NULL END, updated_at = NOW() WHERE user_id = ?');
+                if ($driverStmt) {
+                    $driverStmt->bind_param('ssi', $newVerificationStatus, $newVerificationStatus, $userId);
+                    $driverStmt->execute();
+                    $driverStmt->close();
+                }
+            }
+            carzo_sync_user_primary_role_snapshot($conn, $userId);
+        }
         carzo_sync_current_admin_session($conn, $userId);
         carzo_redirect_with_message('../users.php', 'msg', 'Driver account updated successfully');
     }

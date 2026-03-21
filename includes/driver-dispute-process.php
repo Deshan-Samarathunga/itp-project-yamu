@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/dispute-management.php';
 carzo_start_session();
-carzo_require_user_roles(['driver'], '../signin.php', ['active', 'pending'], '../index.php');
+carzo_require_user_roles(['driver'], '../signin.php', ['active', 'pending', 'verified'], '../access-denied.php');
 include 'config.php';
 
 $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
@@ -43,3 +43,6 @@ if (isset($_POST['submitDriverResponse'])) {
 
     carzo_redirect_with_message('../driver-dispute-view.php?complaint_id=' . $complaintId, 'msg', 'Response saved successfully');
 }
+
+
+

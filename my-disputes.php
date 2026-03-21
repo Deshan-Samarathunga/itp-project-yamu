@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active'], 'index.php');
+carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "My Disputes";
 include 'includes/config.php';
 
@@ -65,3 +65,6 @@ $result = mysqli_query($conn, $sql);
 <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

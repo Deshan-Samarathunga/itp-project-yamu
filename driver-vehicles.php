@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     carzo_start_session();
-    carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
     include 'includes/config.php';
     $page_title = "Driver Vehicles";
 
@@ -101,3 +101,6 @@
     <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

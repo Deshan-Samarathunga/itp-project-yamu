@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/dispute-management.php';
 carzo_start_session();
-carzo_require_user_roles(['customer'], '../signin.php', ['active'], '../index.php');
+carzo_require_user_roles(['customer'], '../signin.php', ['active', 'verified'], '../access-denied.php');
 include 'config.php';
 
 function carzo_store_dispute_attachment($fieldName)
@@ -56,3 +56,6 @@ if (isset($_POST['submitDispute'])) {
 
     carzo_redirect_with_message('../my-disputes.php', 'msg', $message);
 }
+
+
+

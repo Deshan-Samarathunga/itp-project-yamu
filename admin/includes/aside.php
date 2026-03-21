@@ -54,10 +54,15 @@
                     </ul>
                 </li>
                 <li class="sidenav-item">
-                    <a href="users.php" class="nav-links <?php if ($page_title === 'Users') echo 'active'; ?>">
+                    <div class="nav-links dropdown <?php if (in_array($page_title, ['User Management', 'User Details', 'User Roles', 'Verify User', 'User Status'], true)) echo 'active'; ?>">
                         <i class="ri-user-line"></i>
                         Users
-                    </a>
+                        <i class="ri-arrow-right-s-line" id="down-icon"></i>
+                    </div>
+                    <ul class="dropdown-list">
+                        <li><a href="users.php">User Management</a></li>
+                        <li><a href="user-add.php">Create User</a></li>
+                    </ul>
                 </li>
                 <li class="sidenav-item">
                     <a href="reviews.php" class="nav-links <?php if ($page_title === 'Reviews') echo 'active'; ?>">
