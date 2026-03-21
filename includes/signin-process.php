@@ -4,36 +4,57 @@ carzo_start_session();
 include 'config.php';
 
 if (isset($_POST['signin'])) {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $password = (string) ($_POST['password'] ?? '');
+
+    if ($email === '' || $password === '') {
+        carzo_redirect_with_message('../signin.php', 'error', 'Email and password are required');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        carzo_redirect_with_message('../signin.php', 'error', 'Please enter a valid email address');
+    }
 
     $user = carzo_fetch_user_by_email($conn, $email);
 
+    if ($user && carzo_password_appears_truncated($user['password'] ?? '')) {
+        carzo_redirect_with_message('../forgot-password.php', 'error', 'Your password record was created before a schema fix. Please reset your password and try again.');
+    }
+
     if (!$user || !carzo_password_matches($password, $user['password'])) {
-        carzo_redirect_with_message('../signin.php', 'error', 'Invalid username or password');
+        carzo_redirect_with_message('../signin.php', 'error', 'Invalid email or password');
     }
 
-    $role = carzo_normalize_role($user['role'] ?? 'customer');
-    $accountStatus = carzo_normalize_account_status($user['account_status'] ?? 'active', $role);
+    carzo_upgrade_password_hash_if_needed($conn, (int) $user['user_id'], $password, $user['password']);
+    carzo_touch_user_last_login($conn, (int) $user['user_id']);
+    $user = carzo_fetch_user_by_id($conn, (int) $user['user_id']) ?: $user;
 
-    if ($accountStatus === 'suspended') {
-        carzo_redirect_with_message('../signin.php', 'error', 'Your account has been suspended. Please contact support.');
+    $sessionUser = carzo_set_user_session($user, $conn);
+    $roleAssignments = $sessionUser['role_assignments'] ?? [];
+    $allowedRoleCount = 0;
+
+    foreach ($roleAssignments as $assignment) {
+        if (!carzo_is_role_blocked($assignment['role_status'] ?? 'active')) {
+            $allowedRoleCount++;
+        }
     }
 
-    if (carzo_is_admin_panel_role($role)) {
-        carzo_set_admin_session_from_user($user);
-        carzo_redirect_with_message('../admin/dashboard.php', 'msg', 'Signin Successful');
+    if ($allowedRoleCount === 0) {
+        carzo_logout_current_session();
+        carzo_redirect_with_message('../signin.php', 'error', 'Your account is currently unavailable. Please contact support.');
     }
 
-    carzo_set_user_session($user);
+    $activeRole = $sessionUser['active_role'] ?? carzo_normalize_role($user['role'] ?? 'customer');
+    $activeStatus = carzo_current_user_role_status($activeRole);
 
-    if ($role === 'driver') {
-        $message = $accountStatus === 'pending'
-            ? 'Driver account created. Your verification is still pending.'
-            : 'Signin Successful';
-
-        carzo_redirect_with_message('../driver-dashboard.php', 'msg', $message);
+    if (carzo_is_role_blocked($activeStatus)) {
+        carzo_redirect_with_message('../choose-role.php', 'error', 'Your current role is unavailable. Please switch to another role.');
     }
 
-    carzo_redirect_with_message('../index.php', 'msg', 'Signin Successful');
+    if (!empty($sessionUser['roles']) && count((array) $sessionUser['roles']) > 1) {
+        carzo_redirect_with_message('../choose-role.php', 'msg', 'Select an active role to continue');
+    }
+
+    $redirectPath = carzo_public_home_path_for_role($activeRole);
+    carzo_redirect_with_message('../' . $redirectPath, 'msg', 'Signin Successful');
 }

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 carzo_start_session();
-carzo_require_user_roles(['customer', 'driver'], '../signin.php', ['active', 'pending'], '../index.php');
+carzo_require_user_roles(['customer', 'driver', 'staff', 'admin'], '../signin.php', ['active', 'pending', 'verified'], '../access-denied.php');
 include 'config.php';
 
 if (isset($_POST['UpdatePassword'])) {
@@ -29,6 +29,10 @@ if (isset($_POST['UpdatePassword'])) {
         carzo_redirect_with_message('../update-password.php', 'error', 'Password confirmation failed. Please try again');
     }
 
+    if (strlen($newPassword) < 8) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'Password must contain at least 8 characters');
+    }
+
     $hashedPassword = carzo_hash_password($newPassword);
     $stmt = $conn->prepare('UPDATE users SET password = ?, updated_at = NOW() WHERE user_id = ?');
 
@@ -48,7 +52,7 @@ if (isset($_POST['UpdatePassword'])) {
     $updatedUser = carzo_fetch_user_by_id($conn, $userId);
 
     if ($updatedUser) {
-        carzo_set_user_session($updatedUser);
+        carzo_set_user_session($updatedUser, $conn, carzo_current_user_role());
     }
 
     carzo_redirect_with_message('../update-password.php', 'msg', 'Password Updated Successfully');

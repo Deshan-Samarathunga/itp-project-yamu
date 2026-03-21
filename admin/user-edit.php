@@ -70,7 +70,10 @@
                             <select name="account_status" id="account_status">
                                 <option value="active" <?php echo ($user['account_status'] === 'active') ? 'selected' : ''; ?>>Active</option>
                                 <option value="pending" <?php echo ($user['account_status'] === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                <option value="verified" <?php echo ($user['account_status'] === 'verified') ? 'selected' : ''; ?>>Verified</option>
                                 <option value="suspended" <?php echo ($user['account_status'] === 'suspended') ? 'selected' : ''; ?>>Suspended</option>
+                                <option value="rejected" <?php echo ($user['account_status'] === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                                <option value="deactivated" <?php echo ($user['account_status'] === 'deactivated') ? 'selected' : ''; ?>>Deactivated</option>
                             </select>
                         </div>
                         <div class="form-group" id="verification-row">
@@ -80,6 +83,7 @@
                                 <option value="pending" <?php echo ($user['verification_status'] === 'pending') ? 'selected' : ''; ?>>Pending</option>
                                 <option value="approved" <?php echo ($user['verification_status'] === 'approved') ? 'selected' : ''; ?>>Approved</option>
                                 <option value="rejected" <?php echo ($user['verification_status'] === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                                <option value="unverified" <?php echo ($user['verification_status'] === 'unverified') ? 'selected' : ''; ?>>Unverified</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -137,6 +141,10 @@
                 driverFields.style.display = "block";
                 verificationRow.style.display = "flex";
                 licenseInput.required = true;
+            } else if (role === "staff") {
+                driverFields.style.display = "none";
+                verificationRow.style.display = "flex";
+                licenseInput.required = false;
             } else {
                 driverFields.style.display = "none";
                 verificationRow.style.display = "none";

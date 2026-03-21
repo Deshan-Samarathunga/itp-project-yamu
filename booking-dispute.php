@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dispute-management.php';
 carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active'], 'index.php');
+carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "Booking Dispute";
 include 'includes/config.php';
 
@@ -101,3 +101,6 @@ $existingResult = mysqli_query($conn, "SELECT * FROM complaints WHERE booking_id
 <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

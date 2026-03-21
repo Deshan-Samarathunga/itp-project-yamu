@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 carzo_start_session();
-carzo_require_user_roles(['customer', 'driver'], '../signin.php', ['active', 'pending'], '../index.php');
+carzo_require_user_roles(['customer', 'driver', 'staff', 'admin'], '../signin.php', ['active', 'pending', 'verified'], '../access-denied.php');
 include 'config.php';
 
 if (isset($_POST['updateProfile'])) {
@@ -25,7 +25,8 @@ if (isset($_POST['updateProfile'])) {
     $dob = trim($_POST['dob'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $city = trim($_POST['city'] ?? '');
-    $role = carzo_normalize_role($currentUser['role'] ?? 'customer');
+    $activeRole = carzo_current_user_role();
+    $role = carzo_normalize_role($activeRole ?: ($currentUser['role'] ?? 'customer'));
     $licenseOrNic = $role === 'driver' ? trim($_POST['license_or_nic'] ?? '') : ($currentUser['license_or_nic'] ?? null);
     $bio = $role === 'driver' ? trim($_POST['bio'] ?? '') : ($currentUser['bio'] ?? null);
 
@@ -95,7 +96,7 @@ if (isset($_POST['updateProfile'])) {
     $updatedUser = carzo_fetch_user_by_id($conn, $userId);
 
     if ($updatedUser) {
-        carzo_set_user_session($updatedUser);
+        carzo_set_user_session($updatedUser, $conn, $activeRole);
     }
 
     carzo_redirect_with_message('../profile.php', 'msg', 'Profile Updated Successfully');

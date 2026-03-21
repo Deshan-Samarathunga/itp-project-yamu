@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     carzo_start_session();
-    carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
     include 'includes/config.php';
     $page_title = 'Driver Dashboard';
     $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
@@ -224,6 +224,86 @@
                     include('includes/account-sidebar.php');
                 ?>
                 <div class="profile-details card">
+                    <h3>Driver Dashboard</h3>
+                    <div class="form-group">
+                        <label>Total Listings:</label>
+                        <input type="text" value="<?php echo (int) ($vehicleStats['total_listings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Pending Listing Approvals:</label>
+                        <input type="text" value="<?php echo (int) ($vehicleStats['pending_approvals'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Approved Listings:</label>
+                        <input type="text" value="<?php echo (int) ($vehicleStats['approved_listings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Booked Vehicles:</label>
+                        <input type="text" value="<?php echo (int) ($vehicleStats['booked_listings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Total Booking Requests:</label>
+                        <input type="text" value="<?php echo (int) ($bookingStats['total_requests'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Pending Requests:</label>
+                        <input type="text" value="<?php echo (int) ($bookingStats['pending_requests'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Active Bookings:</label>
+                        <input type="text" value="<?php echo (int) ($bookingStats['active_bookings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Completed Bookings:</label>
+                        <input type="text" value="<?php echo (int) ($bookingStats['completed_bookings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Total Reviews:</label>
+                        <input type="text" value="<?php echo (int) ($reviewStats['total_reviews'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Reviews Awaiting Moderation:</label>
+                        <input type="text" value="<?php echo (int) ($reviewStats['pending_reviews'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Visible Reviews:</label>
+                        <input type="text" value="<?php echo (int) ($reviewStats['visible_reviews'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Total Disputes:</label>
+                        <input type="text" value="<?php echo (int) ($disputeStats['total_disputes'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Open / Under Review Disputes:</label>
+                        <input type="text" value="<?php echo (int) ($disputeStats['active_disputes'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Paid Transactions:</label>
+                        <input type="text" value="<?php echo (int) ($earningsStats['paid_transactions'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Paid Earnings:</label>
+                        <input type="text" value="Rs. <?php echo carzo_money($earningsStats['paid_earnings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Account Type:</label>
+                        <input type="text" value="<?php echo carzo_e(carzo_role_label(carzo_current_user_role())); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Account Status:</label>
+                        <input type="text" value="<?php echo ucfirst($_SESSION['user']['account_status']) ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Verification Status:</label>
+                        <input type="text" value="<?php echo ucfirst(str_replace('_', ' ', $_SESSION['user']['verification_status'])) ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>License / NIC:</label>
+                        <input type="text" value="<?php echo $_SESSION['user']['license_or_nic'] ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Driver Bio:</label>
+                        <textarea readonly><?php echo $_SESSION['user']['bio'] ?></textarea>
                     <div class="driver-dashboard-shell">
                         <div class="driver-dashboard-header">
                             <div>
@@ -290,3 +370,6 @@
     <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

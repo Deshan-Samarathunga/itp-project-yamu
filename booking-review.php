@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/review-management.php';
 carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active'], 'index.php');
+carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "Booking Review";
 include 'includes/config.php';
 
@@ -80,3 +80,6 @@ $bookingInfo = ($bookingInfoResult && mysqli_num_rows($bookingInfoResult) > 0) ?
 <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+

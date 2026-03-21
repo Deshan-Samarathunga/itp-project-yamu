@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
 carzo_start_session();
-carzo_require_admin('../index.php');
+carzo_require_admin('../index.php', '../access-denied.php');
 
 include 'config.php'; // Database Connection
 
@@ -23,3 +23,4 @@ if (isset($_GET['user_id'])) {
 ?>
 
  
+

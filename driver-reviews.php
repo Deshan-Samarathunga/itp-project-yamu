@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 carzo_start_session();
+carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
+$page_title = "Driver Reviews";
 carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
 $page_title = 'Driver Reviews';
 include 'includes/config.php';
@@ -65,3 +67,6 @@ $result = mysqli_query($conn, $sql);
 <script src="assets/js/main.js"></script>
 </body>
 </html>
+
+
+
