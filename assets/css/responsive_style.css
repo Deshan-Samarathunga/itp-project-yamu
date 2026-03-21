@@ -187,13 +187,26 @@
         align-items: stretch;
     }
 
+    .driver-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .driver-dashboard-header .btn {
+        width: 100%;
+        text-align: center;
+    }
+
     .driver-hero,
     .driver-detail-grid,
-    .reviews-list {
+    .reviews-list,
+    .driver-dashboard-summary,
+    .driver-dashboard-snapshot {
         grid-template-columns: repeat(1, 1fr);
     }
 
-    .driver-stats-row {
+    .driver-stats-row,
+    .driver-dashboard-grid {
         grid-template-columns: repeat(1, 1fr);
     }
 
@@ -278,5 +291,19 @@
     .driver-card-actions .btn,
     .driver-card-actions.stack .btn {
         width: 100%;
+    }
+
+    .driver-overview-card {
+        min-height: 132px;
+        padding: 20px;
+    }
+
+    .driver-overview-icon {
+        width: 72px;
+        height: 72px;
+    }
+
+    .driver-overview-icon i {
+        font-size: 28px;
     }
 }
