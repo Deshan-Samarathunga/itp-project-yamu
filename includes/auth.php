@@ -728,6 +728,10 @@ function carzo_touch_user_last_login($conn, $userId)
         return;
     }
 
+    if (!carzo_ensure_users_last_login_column($conn)) {
+        return;
+    }
+
     $stmt = $conn->prepare('UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE user_id = ?');
 
     if (!$stmt) {
@@ -1023,7 +1027,7 @@ function carzo_fetch_role_profile($conn, $userId, $role)
 
 function carzo_create_password_reset_token($conn, $userId, $email, $expiryMinutes = 30)
 {
-    if (!$conn || !carzo_table_exists($conn, 'password_resets')) {
+    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
         return null;
     }
 
@@ -1066,7 +1070,7 @@ function carzo_create_password_reset_token($conn, $userId, $email, $expiryMinute
 
 function carzo_fetch_password_reset_by_token($conn, $token)
 {
-    if (!$conn || !carzo_table_exists($conn, 'password_resets')) {
+    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
         return null;
     }
 
@@ -1100,7 +1104,7 @@ function carzo_fetch_password_reset_by_token($conn, $token)
 
 function carzo_mark_password_reset_used($conn, $passwordResetId)
 {
-    if (!$conn || !carzo_table_exists($conn, 'password_resets')) {
+    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
         return false;
     }
 
@@ -1116,6 +1120,111 @@ function carzo_mark_password_reset_used($conn, $passwordResetId)
     $stmt->close();
 
     return $ok;
+}
+
+function carzo_users_password_column_length($conn)
+{
+    if (!$conn || !carzo_table_exists($conn, 'users')) {
+        return 0;
+    }
+
+    $result = @mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'password'");
+
+    if (!$result || $result->num_rows === 0) {
+        if ($result instanceof mysqli_result) {
+            $result->free();
+        }
+        return 0;
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+    $type = strtolower((string) ($row['Type'] ?? ''));
+
+    if (preg_match('/varchar\\((\\d+)\\)/', $type, $matches)) {
+        return (int) ($matches[1] ?? 0);
+    }
+
+    return 0;
+}
+
+function carzo_users_has_column($conn, $columnName)
+{
+    if (!$conn || !carzo_table_exists($conn, 'users')) {
+        return false;
+    }
+
+    $columnName = trim((string) $columnName);
+    if ($columnName === '') {
+        return false;
+    }
+
+    $escapedColumn = mysqli_real_escape_string($conn, $columnName);
+    $result = @mysqli_query($conn, "SHOW COLUMNS FROM users LIKE '{$escapedColumn}'");
+
+    if (!$result) {
+        return false;
+    }
+
+    $exists = $result->num_rows > 0;
+    $result->free();
+
+    return $exists;
+}
+
+function carzo_ensure_users_password_column($conn)
+{
+    if (!$conn || !carzo_table_exists($conn, 'users')) {
+        return false;
+    }
+
+    $currentLength = carzo_users_password_column_length($conn);
+
+    if ($currentLength >= 255) {
+        return true;
+    }
+
+    return (bool) $conn->query('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) DEFAULT NULL');
+}
+
+function carzo_ensure_users_last_login_column($conn)
+{
+    if (!$conn || !carzo_table_exists($conn, 'users')) {
+        return false;
+    }
+
+    if (carzo_users_has_column($conn, 'last_login_at')) {
+        return true;
+    }
+
+    return (bool) $conn->query('ALTER TABLE users ADD COLUMN last_login_at DATETIME DEFAULT NULL AFTER updated_at');
+}
+
+function carzo_ensure_password_resets_table($conn)
+{
+    if (!$conn) {
+        return false;
+    }
+
+    if (carzo_table_exists($conn, 'password_resets')) {
+        return true;
+    }
+
+    $sql = "CREATE TABLE IF NOT EXISTS `password_resets` (
+        `password_reset_id` INT(11) NOT NULL AUTO_INCREMENT,
+        `user_id` INT(11) DEFAULT NULL,
+        `email` VARCHAR(255) NOT NULL,
+        `token_hash` CHAR(64) NOT NULL,
+        `expires_at` DATETIME NOT NULL,
+        `used_at` DATETIME DEFAULT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`password_reset_id`),
+        UNIQUE KEY `uk_password_resets_token_hash` (`token_hash`),
+        KEY `idx_password_resets_email` (`email`),
+        KEY `idx_password_resets_expires` (`expires_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    return (bool) $conn->query($sql);
 }
 
 function carzo_profile_avatar_path($fileName)

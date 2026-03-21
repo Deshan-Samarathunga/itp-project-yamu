@@ -5,6 +5,8 @@ carzo_require_user_roles(['customer', 'driver', 'staff', 'admin'], '../signin.ph
 include 'config.php';
 
 if (isset($_POST['UpdatePassword'])) {
+    carzo_ensure_users_password_column($conn);
+
     $sessionUserId = (int) ($_SESSION['user']['user_ID'] ?? 0);
     $userId = (int) ($_POST['userID'] ?? 0);
     $currentPassword = $_POST['current_password'];

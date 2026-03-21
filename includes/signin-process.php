@@ -4,6 +4,8 @@ carzo_start_session();
 include 'config.php';
 
 if (isset($_POST['signin'])) {
+    carzo_ensure_users_password_column($conn);
+
     $email = trim((string) ($_POST['email'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
 
