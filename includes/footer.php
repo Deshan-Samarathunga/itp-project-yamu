@@ -51,8 +51,6 @@
             </div>
             <hr>
             <div class="row">
-                <a href="terms&condition.php">Terms and conditions</a>
-                <span>All Copyrights Reserved © 2023 - EM</span>
             </div>
         </div>
     </footer>

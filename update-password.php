@@ -1,6 +1,8 @@
 <?php
+    require_once __DIR__ . '/includes/auth.php';
+    carzo_start_session();
+    carzo_require_user_roles(['customer', 'driver'], 'signin.php', ['active', 'pending'], 'index.php');
     $page_title = "Update Password"; 
-    session_start(); // Start the session
 ?>
 
 <!DOCTYPE html>
@@ -22,39 +24,10 @@
         ?>
         <div class="container">
             <div class="row">
-            <div class="profile-card card sticky">
-                    <div class="avatar">
-                        <img src="assets/images/uploads/avatar/<?php echo $_SESSION['user']['avatar'] ?>" alt="avatar">
-                    </div>
-                    <h4>Monica Lucas</h4>
-                    <span><?php echo $_SESSION['user']['email'] ?></span>
-                    <ul class="sidenav-list">
-                        <li class="sidenav-item">
-                            <a href="profile.php" class="nav-links">
-                                <i class="ri-user-line"></i>
-                                Profile Setting
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="update-password.php" class="nav-links active">
-                                <i class="ri-lock-line"></i>
-                                Change Password
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="my-booking.php" class="nav-links">
-                                <i class="ri-book-line"></i>
-                                My Booking
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="profile.php" class="nav-links">
-                                <i class="ri-logout-box-line"></i>
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <?php
+                    $currentAccountPage = 'password';
+                    include('includes/account-sidebar.php');
+                ?>
                 <div class="profile-details card">
                     <h3>Change password</h3>
                     <form action="includes/update-password.php" method="POST" class="signup-form">

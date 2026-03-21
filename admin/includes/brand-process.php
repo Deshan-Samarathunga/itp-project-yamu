@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../includes/auth.php';
+carzo_start_session();
+carzo_require_admin('../index.php');
 include 'config.php'; // Database Connection
 
 // Add new brands ================================================================================

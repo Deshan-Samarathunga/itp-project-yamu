@@ -17,14 +17,17 @@
 
 <?php
     echo "
-        <script>var alertElement = document.querySelector('.alert');
+        <script>
+        var alertElement = document.querySelector('.alert');
         var timeout = 3000;
+
         function hideAlert() {
-            // Hide or remove the alert element here
-            alertElement.style.display = 'none'; 
+            if (alertElement) {
+                alertElement.style.display = 'none';
+            }
         }
         
-        // Set the timeout to hide or remove the alert element
-        setTimeout(hideAlert, timeout);</script>
+        setTimeout(hideAlert, timeout);
+        </script>
     "
 ?>

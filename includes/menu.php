@@ -1,3 +1,10 @@
+<?php
+    require_once __DIR__ . '/auth.php';
+    carzo_start_session();
+    $signedInUser = carzo_current_user();
+    $signedInRole = $signedInUser['role'] ?? 'customer';
+    $signedInAdmin = $_SESSION['admin'] ?? null;
+?>
 <!-- Top Navbar -->
         <div class="top-nav">
             <div class="container row">
@@ -55,18 +62,49 @@
                 </ul>
                 <ul class="sign-btn">
                     <?php
-                        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
+                        if (carzo_is_admin_authenticated()) {
+                            ?>
+                                <div class="login-menu subnav">
+                                    <span><?php echo carzo_e($signedInAdmin['username'] ?? 'admin'); ?></span>
+                                    <div class="avatar">
+                                        <img src="<?php echo carzo_e(carzo_profile_avatar_path($signedInAdmin['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
+                                    </div>
+                                    <ul class="subnav-content">
+                                        <li><a href="admin/dashboard.php"><i class="ri-dashboard-line"></i> Admin Dashboard</a></li>
+                                        <li><a href="admin/users.php"><i class="ri-user-line"></i> Users</a></li>
+                                        <li><a href="admin/bookings.php"><i class="ri-bookmark-line"></i> Bookings</a></li>
+                                        <li><a href="admin/payments.php"><i class="ri-bank-card-line"></i> Payments</a></li>
+                                        <li><a href="admin/promotions.php"><i class="ri-coupon-3-line"></i> Promotions</a></li>
+                                        <li class="logout"><a href="admin/loguot.php"><i class="ri-login-box-line"></i> Log Out</a></li>
+                                    </ul>
+                                </div>
+                            <?php
+                        } elseif (carzo_is_user_authenticated()) {
                             // Display navbar for authenticated users
                             ?>
                                 <div class="login-menu subnav">
-                                    <span><?php echo $_SESSION['user']['username']; ?></span>
+                                    <span><?php echo carzo_e($signedInUser['username']); ?></span>
                                     <div class="avatar">
-                                        <img src="assets/images/uploads/avatar/<?php echo $_SESSION['user']['avatar'] ?>" alt="avatar">
+                                        <img src="<?php echo carzo_e(carzo_profile_avatar_path($signedInUser['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
                                     </div>
                                     <ul class="subnav-content">
+                                        <?php if ($signedInRole === 'driver') { ?>
+                                            <li><a href="driver-dashboard.php"><i class="ri-roadster-line"></i> Driver Dashboard</a></li>
+                                            <li><a href="driver-vehicles.php"><i class="ri-car-line"></i> My Listings</a></li>
+                                            <li><a href="driver-bookings.php"><i class="ri-bookmark-line"></i> Booking Requests</a></li>
+                                            <li><a href="driver-reviews.php"><i class="ri-star-line"></i> Reviews</a></li>
+                                            <li><a href="driver-disputes.php"><i class="ri-chat-3-line"></i> Disputes</a></li>
+                                            <li><a href="driver-earnings.php"><i class="ri-money-dollar-circle-line"></i> Earnings</a></li>
+                                        <?php } ?>
                                         <li><a href="profile.php"><i class="ri-user-line"></i> Profile Setting</a></li>
                                         <li><a href="update-password.php"><i class="ri-lock-line"></i> Change Password</a></li>
-                                        <li><a href="my-booking.php"><i class="ri-book-line"></i> My Bookings</a></li>
+                                        <?php if ($signedInRole === 'customer') { ?>
+                                            <li><a href="my-booking.php"><i class="ri-book-line"></i> My Bookings</a></li>
+                                            <li><a href="my-reviews.php"><i class="ri-star-line"></i> My Reviews</a></li>
+                                            <li><a href="my-disputes.php"><i class="ri-chat-3-line"></i> My Disputes</a></li>
+                                            <li><a href="payment-history.php"><i class="ri-bank-card-line"></i> Payments</a></li>
+                                            <li><a href="promotions.php"><i class="ri-coupon-3-line"></i> Promotions</a></li>
+                                        <?php } ?>
                                         <li class="logout"><a href="logout.php"><i class="ri-login-box-line"></i> Log Out</a></li>
                                     </ul>
                                 </div> 

@@ -1,7 +1,41 @@
 <?php
+    require_once __DIR__ . '/../includes/auth.php';
+    carzo_start_session();
+    carzo_require_admin('index.php');
     include 'includes/config.php'; // Database Connection   
     $page_title = "Dashboard"; 
-    session_start(); // Start the session
+
+    $overviewMetrics = [
+        'listed_vehicles' => 0,
+        'registered_users' => 0,
+        'listed_brands' => 0,
+        'total_bookings' => 0,
+        'pending_listings' => 0,
+        'pending_reviews' => 0,
+        'open_disputes' => 0,
+        'paid_revenue' => 0,
+        'active_promotions' => 0,
+    ];
+
+    $overviewQueries = [
+        'listed_vehicles' => "SELECT COUNT(*) AS metric_value FROM vehicles",
+        'registered_users' => "SELECT COUNT(*) AS metric_value FROM users",
+        'listed_brands' => "SELECT COUNT(*) AS metric_value FROM brands",
+        'total_bookings' => "SELECT COUNT(*) AS metric_value FROM booking",
+        'pending_listings' => "SELECT COUNT(*) AS metric_value FROM vehicles WHERE listing_status = 'pending'",
+        'pending_reviews' => "SELECT COUNT(*) AS metric_value FROM reviews WHERE status = 'pending'",
+        'open_disputes' => "SELECT COUNT(*) AS metric_value FROM complaints WHERE status IN ('open', 'under_review')",
+        'paid_revenue' => "SELECT COALESCE(SUM(final_amount), 0) AS metric_value FROM payments WHERE payment_status = 'paid'",
+        'active_promotions' => "SELECT COUNT(*) AS metric_value FROM promotions WHERE status = 'active' AND (valid_to IS NULL OR valid_to >= NOW())",
+    ];
+
+    foreach ($overviewQueries as $metricKey => $metricSql) {
+        $metricResult = mysqli_query($conn, $metricSql);
+        if ($metricResult && mysqli_num_rows($metricResult) > 0) {
+            $metricRow = mysqli_fetch_assoc($metricResult);
+            $overviewMetrics[$metricKey] = $metricRow['metric_value'] ?? 0;
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,22 +67,7 @@
                 <div class="overviewcard">
                     <div class="overviewcard-info">
                         <h3>Listed Vehicles</h3>
-                        <span>
-                            <?php
-                                $sql = "SELECT COUNT(*) AS total_vehicles FROM vehicles";
-                                $result = $conn->query($sql);
-
-                                if ($result->num_rows > 0) {
-                                    $row = $result->fetch_assoc();
-                                    $totalRows = $row['total_vehicles'];
-                                    echo $totalRows; 
-
-                                } else {
-                                    echo "0 results";
-                                }
-
-                            ?>
-                        </span>
+                        <span><?php echo (int) $overviewMetrics['listed_vehicles']; ?></span>
                     </div>
                     <div class="overviewcard-icon">
                         <i class="ri-car-line"></i>
@@ -57,22 +76,7 @@
                 <div class="overviewcard">
                     <div class="overviewcard-info">
                     <h3>Registered Users</h3>
-                    <span>
-                        <?php
-                            $sql = "SELECT COUNT(*) AS total_user_id FROM users";
-                            $result = $conn->query($sql);
-
-                            if ($result->num_rows > 0) {
-                                $row = $result->fetch_assoc();
-                                $totalRows = $row['total_user_id'];
-                                echo $totalRows; 
-
-                            } else {
-                                echo "0 results";
-                            }
-
-                        ?>
-                    </span>
+                    <span><?php echo (int) $overviewMetrics['registered_users']; ?></span>
                     </div>
 
                     <div class="overviewcard-icon">
@@ -82,21 +86,7 @@
                 <div class="overviewcard">
                     <div class="overviewcard-info">
                         <h3>Listed Brands</h3>
-                        <span>
-                            <?php
-                                $sql = "SELECT COUNT(*) AS total_brands FROM brands";
-                                $result = $conn->query($sql);
-
-                                if ($result->num_rows > 0) {
-                                    $row = $result->fetch_assoc();
-                                    $totalRows = $row['total_brands'];
-                                    echo $totalRows; 
-
-                                } else {
-                                    echo "0 results";
-                                }
-                            ?>
-                        </span>
+                        <span><?php echo (int) $overviewMetrics['listed_brands']; ?></span>
                     </div>
                     <div class="overviewcard-icon">
                         <i class="ri-file-copy-2-line"></i>
@@ -105,21 +95,7 @@
                 <div class="overviewcard">
                     <div class="overviewcard-info">
                         <h3>Total Bookings</h3>
-                        <span>
-                        <?php
-                                $sql = "SELECT COUNT(*) AS total_booking FROM booking";
-                                $result = $conn->query($sql);
-
-                                if ($result->num_rows > 0) {
-                                    $row = $result->fetch_assoc();
-                                    $totalRows = $row['total_booking'];
-                                    echo $totalRows; 
-
-                                } else {
-                                    echo "0 results";
-                                }
-                            ?>
-                        </span>
+                        <span><?php echo (int) $overviewMetrics['total_bookings']; ?></span>
                     </div>
                     <div class="overviewcard-icon">
                         <i class="ri-edit-line"></i>
@@ -127,25 +103,47 @@
                 </div>
                 <div class="overviewcard">
                     <div class="overviewcard-info">
-                        <h3>Revenue</h3>Rs
-                        <span>
-                        <?php
-                                $sql = "SELECT SUM(total) AS revenue FROM booking";
-                                $result = $conn->query($sql);
-
-                                if ($result->num_rows > 0) {
-                                    $row = $result->fetch_assoc();
-                                    $totalRows = $row['revenue'];
-                                    echo $totalRows; 
-
-                                } else {
-                                    echo "0 results";
-                                }
-                            ?>
-                        </span> 
+                        <h3>Paid Revenue</h3>
+                        <span>Rs. <?php echo carzo_money($overviewMetrics['paid_revenue']); ?></span> 
                     </div>
                     <div class="overviewcard-icon">
                         <i class="ri-money-dollar-circle-line"></i>
+                    </div>
+                </div>
+                <div class="overviewcard">
+                    <div class="overviewcard-info">
+                        <h3>Pending Listings</h3>
+                        <span><?php echo (int) $overviewMetrics['pending_listings']; ?></span>
+                    </div>
+                    <div class="overviewcard-icon">
+                        <i class="ri-time-line"></i>
+                    </div>
+                </div>
+                <div class="overviewcard">
+                    <div class="overviewcard-info">
+                        <h3>Pending Reviews</h3>
+                        <span><?php echo (int) $overviewMetrics['pending_reviews']; ?></span>
+                    </div>
+                    <div class="overviewcard-icon">
+                        <i class="ri-star-half-line"></i>
+                    </div>
+                </div>
+                <div class="overviewcard">
+                    <div class="overviewcard-info">
+                        <h3>Open Disputes</h3>
+                        <span><?php echo (int) $overviewMetrics['open_disputes']; ?></span>
+                    </div>
+                    <div class="overviewcard-icon">
+                        <i class="ri-chat-warning-line"></i>
+                    </div>
+                </div>
+                <div class="overviewcard">
+                    <div class="overviewcard-info">
+                        <h3>Active Promotions</h3>
+                        <span><?php echo (int) $overviewMetrics['active_promotions']; ?></span>
+                    </div>
+                    <div class="overviewcard-icon">
+                        <i class="ri-coupon-3-line"></i>
                     </div>
                 </div>
             </div>

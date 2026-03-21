@@ -1,38 +1,37 @@
 <?php
-session_start();
-include 'config.php'; // Database Connection
+require_once __DIR__ . '/../../includes/auth.php';
+carzo_start_session();
+include 'config.php';
 
-if(isset($_POST['signin'])) {
-    $email = $_POST['email'];   
+if (isset($_POST['signin'])) {
+    $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    $sql = "SELECT * FROM admin WHERE email = '$email' AND password = MD5('$password')";
-    $query = mysqli_query($conn, $sql);
+    $user = carzo_fetch_user_by_email($conn, $email);
 
-    if(mysqli_num_rows($query) > 0) {
-        // Process the retrieved data
-        while ($row = mysqli_fetch_assoc($query)) {
-            $array = [
-                'admin_id' => $row['admin_id'],
-                'username' => $row['username'],
-                'password' => $row['password'],
-                'email' => $row['email'],
-                'name' => $row['name'],
-                'address' => $row['address'],
-                'city' => $row['city'],
-                'phone' => $row['phone'],
-                'avatar' => $row['profile_pic'],
-            ];
-            $_SESSION['admin'] = $array;
+    if ($user && carzo_normalize_role($user['role'] ?? 'customer') === 'admin' && carzo_password_matches($password, $user['password'])) {
+        if (carzo_normalize_account_status($user['account_status'] ?? 'active', 'admin') === 'suspended') {
+            carzo_redirect_with_message('../index.php', 'error', 'Your admin account is currently suspended');
         }
 
-        $msg = "Signin Successful";
-        header("Location: ../dashboard.php?msg=$msg"); // Redirect to dashboard  
-        exit();
-    } else {
-        // Authentication failed
-        $error = "Invalid email or password";
-        header("Location: ../index.php?error=$error"); // Redirect to signin page 
+        carzo_set_admin_session_from_user($user);
+        carzo_redirect_with_message('../dashboard.php', 'msg', 'Signin Successful');
     }
+
+    $stmt = $conn->prepare('SELECT * FROM admin WHERE email = ? LIMIT 1');
+
+    if ($stmt) {
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $legacyAdmin = $result ? $result->fetch_assoc() : null;
+        $stmt->close();
+
+        if ($legacyAdmin && carzo_password_matches($password, $legacyAdmin['password'])) {
+            carzo_set_admin_session_from_legacy_admin($legacyAdmin);
+            carzo_redirect_with_message('../dashboard.php', 'msg', 'Signin Successful');
+        }
+    }
+
+    carzo_redirect_with_message('../index.php', 'error', 'Invalid email or password');
 }
-?>

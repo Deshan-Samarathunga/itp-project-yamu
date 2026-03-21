@@ -385,7 +385,8 @@ table tbody tr:hover {
 /* Status badges */
 .Status-active-badge,
 .Status-conpleted-badge,
-.Status-pending-badge {
+.Status-pending-badge,
+.Status-inactive-badge {
     display: inline-block;
     font-size: 10px;
     font-weight: 900;
@@ -405,6 +406,10 @@ table tbody tr:hover {
 }
 .Status-pending-badge {
     background: #ffab00;
+    color: #FFF;
+}
+.Status-inactive-badge {
+    background: #fa5151;
     color: #FFF;
 }
 

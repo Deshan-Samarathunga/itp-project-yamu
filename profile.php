@@ -1,6 +1,8 @@
 <?php
+    require_once __DIR__ . '/includes/auth.php';
+    carzo_start_session();
+    carzo_require_user_roles(['customer', 'driver'], 'signin.php', ['active', 'pending'], 'index.php');
     $page_title = "Profile"; 
-    session_start(); // Start the session
 ?>
 
 <!DOCTYPE html>
@@ -22,39 +24,10 @@
         ?>
         <div class="container">
             <div class="row">
-                <div class="profile-card card sticky">
-                    <div class="avatar">
-                        <img src="assets/images/uploads/avatar/<?php echo $_SESSION['user']['avatar'] ?>" alt="avatar">
-                    </div>
-                    <h4><?php echo $_SESSION['user']['name'] ?></h4>
-                    <span><?php echo $_SESSION['user']['email'] ?></span>
-                    <ul class="sidenav-list">
-                        <li class="sidenav-item">
-                            <a href="profile.php" class="nav-links active">
-                                <i class="ri-user-line"></i>
-                                Profile Setting
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="update-password.php" class="nav-links">
-                                <i class="ri-lock-line"></i>
-                                Change Password
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="my-booking.php" class="nav-links">
-                                <i class="ri-book-line"></i>
-                                My Booking
-                            </a>
-                        </li>
-                        <li class="sidenav-item">
-                            <a href="profile.php" class="nav-links">
-                                <i class="ri-logout-box-line"></i>
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <?php
+                    $currentAccountPage = 'profile';
+                    include('includes/account-sidebar.php');
+                ?>
                 <div class="profile-details card">
                     <form action="includes/profile-setting.php" method="POST" enctype="multipart/form-data" class="signup-form">
                         <h3>Update Profile Picture</h3>
@@ -79,6 +52,24 @@
                                 placeholder="Enter Name" 
                                 value = "<?php echo $_SESSION['user']['user_ID'] ?>"
                                 required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Account Type:</label>
+                            <input 
+                                type="text" 
+                                id="role" 
+                                value = "<?php echo ucfirst($_SESSION['user']['role']) ?>"
+                                readonly
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="account_status">Account Status:</label>
+                            <input 
+                                type="text" 
+                                id="account_status" 
+                                value = "<?php echo ucfirst($_SESSION['user']['account_status']) ?>"
+                                readonly
                             />
                         </div>
                         <div class="form-group">
@@ -148,6 +139,32 @@
                                 placeholder="Enter Your City" 
                             />
                         </div>
+                        <?php if (($_SESSION['user']['role'] ?? 'customer') === 'driver') { ?>
+                            <div class="form-group">
+                                <label for="verification_status">Verification Status:</label>
+                                <input 
+                                    type="text" 
+                                    id="verification_status" 
+                                    value = "<?php echo ucfirst(str_replace('_', ' ', $_SESSION['user']['verification_status'])) ?>"
+                                    readonly
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="license_or_nic">License / NIC:</label>
+                                <input 
+                                    type="text" 
+                                    name="license_or_nic" 
+                                    id="license_or_nic" 
+                                    value = "<?php echo $_SESSION['user']['license_or_nic'] ?>"
+                                    placeholder="Enter License Number or NIC" 
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Driver Bio:</label>
+                                <textarea name="bio" id="bio" placeholder="Tell customers a little about yourself"><?php echo $_SESSION['user']['bio'] ?></textarea>
+                            </div>
+                        <?php } ?>
                         <input 
                             type="submit" 
                             value="Update Profile" 

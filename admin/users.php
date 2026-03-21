@@ -1,7 +1,38 @@
 <?php
-    include 'includes/config.php'; // Database Connection
-    $page_title = "Users"; 
-    session_start(); // Start the session   
+    require_once __DIR__ . '/../includes/auth.php';
+    carzo_start_session();
+    carzo_require_admin('index.php');
+    include 'includes/config.php';
+    $page_title = "Users";
+
+    $roleFilter = carzo_normalize_role($_GET['role'] ?? '');
+    $statusFilter = strtolower(trim((string) ($_GET['status'] ?? '')));
+    $search = trim((string) ($_GET['search'] ?? ''));
+    $allowedStatuses = ['active', 'pending', 'suspended'];
+
+    $conditions = [];
+
+    if (!empty($_GET['role'])) {
+        $conditions[] = "role = '" . carzo_escape($conn, $roleFilter) . "'";
+    }
+
+    if (in_array($statusFilter, $allowedStatuses, true)) {
+        $conditions[] = "account_status = '" . carzo_escape($conn, $statusFilter) . "'";
+    }
+
+    if ($search !== '') {
+        $escapedSearch = carzo_escape($conn, $search);
+        $conditions[] = "(full_name LIKE '%{$escapedSearch}%' OR email LIKE '%{$escapedSearch}%' OR username LIKE '%{$escapedSearch}%')";
+    }
+
+    $sql = 'SELECT * FROM users';
+
+    if (!empty($conditions)) {
+        $sql .= ' WHERE ' . implode(' AND ', $conditions);
+    }
+
+    $sql .= ' ORDER BY created_at DESC, user_id DESC';
+    $result = $conn->query($sql);
 ?>
     
 <!DOCTYPE html>
@@ -18,14 +49,12 @@
             include('includes/menu.php');
         ?>
 
-        <!-- Aside Section -->
         <?php
             include('includes/aside.php');
         ?>
 
 
         <main class="main">
-            <!-- Allert Box -->
             <?php
                 include('../includes/alert.php');
             ?>
@@ -34,53 +63,81 @@
                 <div class="card">
                     <h3>Users</h3>
                     <div class="card-title">
-                        <div class="search-box">
-                            <input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search...">
-                        </div>
-                        <!-- <a href="vehicle-add.html" class="btn main-btn">Add New +</a> -->
+                        <form action="" method="GET" style="width: 100%; margin: 0;">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <div class="search-box">
+                                    <input type="text" name="search" value="<?php echo carzo_e($search); ?>" placeholder="Search users..." />
+                                </div>
+                                <select name="role" style="width: 180px;">
+                                    <option value="">All Roles</option>
+                                    <option value="customer" <?php echo (isset($_GET['role']) && $_GET['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
+                                    <option value="driver" <?php echo (isset($_GET['role']) && $_GET['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
+                                    <option value="admin" <?php echo (isset($_GET['role']) && $_GET['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                                </select>
+                                <select name="status" style="width: 180px;">
+                                    <option value="">All Statuses</option>
+                                    <option value="active" <?php echo ($statusFilter === 'active') ? 'selected' : ''; ?>>Active</option>
+                                    <option value="pending" <?php echo ($statusFilter === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                    <option value="suspended" <?php echo ($statusFilter === 'suspended') ? 'selected' : ''; ?>>Suspended</option>
+                                </select>
+                                <button type="submit" class="btn second-btn">Filter</button>
+                                <a href="users.php" class="btn second-btn">Reset</a>
+                                <a href="user-add.php" class="btn main-btn">Add New +</a>
+                            </div>
+                        </form>
                     </div>
                     <table id="table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
                                 <th>Avatar</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Verification</th>
                                 <th>Email</th>
-                                <th>Contact No</th>
-                                <th>Address</th>
-                                <th>City</th>
-                                <th>DOB</th>
-                                <th>Reg Date</th>
+                                <th>Phone</th>
+                                <th>License / NIC</th>
+                                <th>Created</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody class="table-body">
                         <?php
-                            $sql = "SELECT * FROM users";
-                            $result = $conn->query($sql);
-
-                            if ($result->num_rows > 0) {
-                                // output data of each row
+                            if ($result && $result->num_rows > 0) {
                                 while ($row = $result->fetch_assoc()) {
+                                    $statusClass = carzo_badge_class($row['account_status']);
+                                    $verificationClass = carzo_badge_class($row['verification_status']);
                                     ?>
                                     <tr>
-                                        <td><?php echo $row['user_id']; ?></td>
-                                        <td><?php echo $row['full_name']; ?></td>
-                                        <td><img src="../assets/images/uploads/avatar/<?php echo $row['profile_pic']; ?>" alt="avatar" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50px"></td>
-                                        <td><?php echo $row['email']; ?></td>
-                                        <td><?php echo $row['phone']; ?></td>
-                                        <td><?php echo $row['address']; ?></td>
-                                        <td><?php echo $row['city']; ?></td>
-                                        <td><?php echo $row['dob']; ?></td>
-                                        <td><?php echo $row['rag_date']; ?></td>
+                                        <td><?php echo carzo_e($row['user_id']); ?></td>
+                                        <td><img src="../assets/images/uploads/avatar/<?php echo carzo_e($row['profile_pic']); ?>" alt="avatar" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50px"></td>
+                                        <td><?php echo carzo_e($row['full_name']); ?></td>
+                                        <td><?php echo carzo_e(ucfirst($row['role'])); ?></td>
+                                        <td><span class="<?php echo carzo_e($statusClass); ?>"><?php echo carzo_e(ucfirst($row['account_status'])); ?></span></td>
+                                        <td><span class="<?php echo carzo_e($verificationClass); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['verification_status']))); ?></span></td>
+                                        <td><?php echo carzo_e($row['email']); ?></td>
+                                        <td><?php echo carzo_e($row['phone']); ?></td>
+                                        <td><?php echo carzo_e($row['license_or_nic']); ?></td>
+                                        <td><?php echo carzo_e($row['created_at'] ?: $row['rag_date']); ?></td>
                                         <td>
-                                            <a class="del-badge" title="Delete" href="includes/deleteRecord.php?user_id=<?php echo $row['user_id']; ?>"><i class="ri-delete-bin-7-fill"></i></a>
+                                            <a class="edit-badge" title="Edit" href="user-edit.php?user_id=<?php echo $row['user_id']; ?>"><i class="ri-pencil-fill"></i></a>
+                                            <?php if ($row['account_status'] === 'active') { ?>
+                                                <a class="del-badge" title="Suspend" href="includes/user-process.php?action=suspend&user_id=<?php echo $row['user_id']; ?>"><i class="ri-pause-fill"></i></a>
+                                            <?php } else { ?>
+                                                <a class="edit-badge" title="Activate" href="includes/user-process.php?action=activate&user_id=<?php echo $row['user_id']; ?>"><i class="ri-play-fill"></i></a>
+                                            <?php } ?>
+                                            <?php if ($row['role'] === 'driver') { ?>
+                                                <a class="edit-badge" title="Approve Driver" href="includes/user-process.php?action=approve-driver&user_id=<?php echo $row['user_id']; ?>"><i class="ri-check-fill"></i></a>
+                                                <a class="del-badge" title="Reject Driver" href="includes/user-process.php?action=reject-driver&user_id=<?php echo $row['user_id']; ?>"><i class="ri-close-fill"></i></a>
+                                            <?php } ?>
+                                            <a class="del-badge" title="Delete" href="includes/user-process.php?action=delete&user_id=<?php echo $row['user_id']; ?>"><i class="ri-delete-bin-7-fill"></i></a>
                                         </td>
                                     </tr>
                                     <?php
                                 }
                             } else {
-                                echo "0 results";
+                                echo "<tr><td colspan='11'>No users found.</td></tr>";
                             }
 
                         ?>
@@ -97,30 +154,5 @@
     </div>
 
     <script src="assets/js/main.js"></script>
-    <script>
-        // Search Bar
-
-        function seacrFunction() {
-        // Declare variables
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("myInput");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("table");
-        tr = table.getElementsByTagName("tr");
-
-            // Loop through all table rows, and hide those who don't match the search query
-            for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[1];
-                if (td) {
-                txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }
-            }
-        }
-    </script>
 </body>
 </html>

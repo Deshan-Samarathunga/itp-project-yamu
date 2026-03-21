@@ -1,6 +1,5 @@
 <?php
-    session_start();
-    session_unset();
-    session_destroy();
-    header('Location: ../index.php');
+    require_once __DIR__ . '/../includes/auth.php';
+    carzo_logout_current_session();
+    carzo_redirect_with_message('../index.php', 'msg', 'Signed out successfully');
 ?>

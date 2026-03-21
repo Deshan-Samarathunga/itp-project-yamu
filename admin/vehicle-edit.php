@@ -1,99 +1,88 @@
 <?php
-    include 'includes/config.php'; // Database Connection
-    $page_title = "Vehicles-Edit"; 
-    session_start(); // Start the session
+    require_once __DIR__ . '/../includes/auth.php';
+    require_once __DIR__ . '/../includes/vehicle-management.php';
+    carzo_start_session();
+    carzo_require_admin('index.php');
+    include 'includes/config.php';
+    $page_title = "Vehicles-Edit";
+
+    $vehicleId = isset($_GET['vehicle_id']) ? (int) $_GET['vehicle_id'] : 0;
+    $vehicle = carzo_vehicle_fetch($conn, $vehicleId);
+
+    if (!$vehicle) {
+        carzo_redirect_with_message('vehicle.php', 'error', 'Vehicle not found');
+    }
+
+    $brandResult = mysqli_query($conn, "SELECT * FROM brands WHERE brand_status = 1 ORDER BY brand_name ASC");
+    $ownerResult = mysqli_query($conn, "SELECT user_id, full_name, email, role FROM users WHERE role IN ('admin','driver') AND account_status IN ('active','pending') ORDER BY role, full_name ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <?php
-        include('includes/header.php');
-    ?>
+    <?php include('includes/header.php'); ?>
 </head>
 <body>
 
     <div class="grid-container">
-        <!-- Navbar -->
-        <?php
-            include('includes/menu.php');
-        ?>
-
-        <!-- Aside Section -->
-        <?php
-            include('includes/aside.php');
-        ?>
+        <?php include('includes/menu.php'); ?>
+        <?php include('includes/aside.php'); ?>
 
         <main class="main">
-            <h2>Post A Vehicle</h2>
+            <?php include('../includes/alert.php'); ?>
+            <h2>Edit Vehicle</h2>
 
             <div class="main-cards">
                 <div class="card">
-                    <?php
-                    
-                        if (isset($_GET['vehicle_id'])) {
-                            $vehicleID = $_GET['vehicle_id'];
-
-                            // Retrieve the existing brand data from the database
-                            $sql = "SELECT * FROM vehicles WHERE vehicle_id = $vehicleID";
-                            $result = $conn->query($sql);
-
-                            if ($result->num_rows > 0) {
-                                $row = $result->fetch_assoc();
-
-                            // Display the update form with pre-filled values
-                    ?>
                     <form action="includes/vehicle-process.php" method="POST" enctype="multipart/form-data" class="signup-form">
-                        <!-- Basic Information -->
                         <p>Basic Info</p>
-                        <input type="hidden" name="vehicleId" value="<?php echo $row['vehicle_id']; ?>">
+                        <input type="hidden" name="vehicleId" value="<?php echo $vehicle['vehicle_id']; ?>">
+                        <div class="form-group">
+                            <label for="owner_user_id">Owner:</label>
+                            <select name="owner_user_id" id="owner_user_id" required>
+                                <?php while ($ownerResult && $owner = mysqli_fetch_assoc($ownerResult)) { ?>
+                                    <option value="<?php echo $owner['user_id']; ?>" <?php echo ((int) $vehicle['owner_user_id'] === (int) $owner['user_id']) ? 'selected' : ''; ?>>
+                                        <?php echo carzo_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="vehicleTitle">Vehicle Title:</label>
-                            <input type="text" name="vehicleTitle" value="<?php echo $row['vehicle_title']; ?>" id="vehicleTitle" placeholder="Enter Brand Name" required/>
+                            <input type="text" name="vehicleTitle" value="<?php echo carzo_e($vehicle['vehicle_title']); ?>" id="vehicleTitle" required />
                         </div>
                         <div class="form-group">
                             <label for="vehicleDesc">Vehicle Overview:</label>
-                            <textarea name="vehicleDesc" id="vehicleDesc" cols="30" rows="5"><?php echo $row['vehicle_desc']; ?></textarea>
+                            <textarea name="vehicleDesc" id="vehicleDesc" cols="30" rows="5"><?php echo carzo_e($vehicle['vehicle_desc']); ?></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="vehicleBrand">Brand: </label>
-                            <?php   
-                                // Retrieve brands from the database
-                                $sql_brand = "SELECT * FROM brands";
-                                $sql_brand_run = $conn->query($sql_brand);
-
-                                // Check if there are any brands
-                                if ($sql_brand_run->num_rows > 0) {
-                                    ?>
-                                    <select name="vehicleBrand" id="vehicleBrand">
-                                        <option selected value="<?php echo $row['vehicle_brand']; ?>"><?php echo $row['vehicle_brand']; ?></option>
-                                        <?php
-                                        // Loop through each brand
-                                        while($row_brand = $sql_brand_run->fetch_assoc()) {
-                                            $brandName = $row_brand['brand_name'];
-                                            ?>
-                                            <option value="<?php echo $brandName; ?>"><?php echo $brandName; ?></option>
-                                            <?php
-                                        }
-                                        ?>
-                                    </select>
-                                    <?php
-                                } else {
-                                    echo "No brands found.";
-                                }
-                            ?>
+                            <label for="vehicleBrand">Brand:</label>
+                            <select name="vehicleBrand" id="vehicleBrand" required>
+                                <option value="<?php echo carzo_e($vehicle['vehicle_brand']); ?>"><?php echo carzo_e($vehicle['vehicle_brand']); ?></option>
+                                <?php while ($brandResult && $brand = mysqli_fetch_assoc($brandResult)) { ?>
+                                    <option value="<?php echo carzo_e($brand['brand_name']); ?>"><?php echo carzo_e($brand['brand_name']); ?></option>
+                                <?php } ?>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="transmission">Transmission: </label>
-                            <select name="transmission" id="transmission">
-                                <option selected value="<?php echo $row['transmission']; ?>"><?php echo $row['transmission']; ?></option>
+                            <label for="location">Location:</label>
+                            <input type="text" name="location" id="location" value="<?php echo carzo_e($vehicle['location']); ?>" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="registration_number">Registration No:</label>
+                            <input type="text" name="registration_number" id="registration_number" value="<?php echo carzo_e($vehicle['registration_number']); ?>" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="transmission">Transmission:</label>
+                            <select name="transmission" id="transmission" required>
+                                <option value="<?php echo carzo_e($vehicle['transmission']); ?>"><?php echo carzo_e($vehicle['transmission']); ?></option>
                                 <option value="Automatic">Automatic</option>
                                 <option value="Manual">Manual</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="fuelType">Fuel Type: </label>
-                            <select name="fuelType" id="fuelType">
-                                <option selected value="<?php echo $row['fuel_type']; ?>"><?php echo $row['fuel_type']; ?></option>
+                            <label for="fuelType">Fuel Type:</label>
+                            <select name="fuelType" id="fuelType" required>
+                                <option value="<?php echo carzo_e($vehicle['fuel_type']); ?>"><?php echo carzo_e($vehicle['fuel_type']); ?></option>
                                 <option value="Diesel">Diesel</option>
                                 <option value="Petrol">Petrol</option>
                                 <option value="Electric">Electric</option>
@@ -103,78 +92,86 @@
                         </div>
                         <div class="form-group">
                             <label for="modelYear">Model Year:</label>
-                            <input type="number" name="modelYear" value="<?php echo $row['year']; ?>" id="modelYear" placeholder="Enter Brand Name" required/>
+                            <input type="number" name="modelYear" value="<?php echo carzo_e($vehicle['year']); ?>" id="modelYear" required />
                         </div>
                         <div class="form-group">
                             <label for="engineCap">Engine Capacity (CC):</label>
-                            <input type="number" name="engineCap" value="<?php echo $row['engine_capacity']; ?>" id="engineCap" placeholder="Enter engine capacity" required/>
+                            <input type="number" name="engineCap" value="<?php echo carzo_e($vehicle['engine_capacity']); ?>" id="engineCap" required />
                         </div>
                         <div class="form-group">
-                            <label for="capacity">Capacity:</label>
-                            <input type="number" name="capacity" value="<?php echo $row['capacity']; ?>" id="capacity" placeholder="Enter number of Seats" required/>
+                            <label for="capacity">Seat Capacity:</label>
+                            <input type="number" name="capacity" value="<?php echo carzo_e($vehicle['capacity']); ?>" id="capacity" required />
                         </div>
                         <div class="form-group">
-                            <label for="price">Price:</label>
-                            <input type="number" name="price" value="<?php echo $row['price']; ?>" id="price" placeholder="Enter Price Per Day(in LKR)" required/>
+                            <label for="price">Daily Price:</label>
+                            <input type="number" step="0.01" name="price" value="<?php echo carzo_e($vehicle['price']); ?>" id="price" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="listing_status">Listing Status:</label>
+                            <select name="listing_status" id="listing_status">
+                                <option value="approved" <?php echo ($vehicle['listing_status'] === 'approved') ? 'selected' : ''; ?>>Approved</option>
+                                <option value="pending" <?php echo ($vehicle['listing_status'] === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                <option value="inactive" <?php echo ($vehicle['listing_status'] === 'inactive') ? 'selected' : ''; ?>>Inactive</option>
+                                <option value="rejected" <?php echo ($vehicle['listing_status'] === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="availability_status">Availability:</label>
+                            <select name="availability_status" id="availability_status">
+                                <option value="available" <?php echo ($vehicle['availability_status'] === 'available') ? 'selected' : ''; ?>>Available</option>
+                                <option value="booked" <?php echo ($vehicle['availability_status'] === 'booked') ? 'selected' : ''; ?>>Booked</option>
+                                <option value="unavailable" <?php echo ($vehicle['availability_status'] === 'unavailable') ? 'selected' : ''; ?>>Unavailable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="maintenance_status">Maintenance Status:</label>
+                            <select name="maintenance_status" id="maintenance_status">
+                                <option value="good" <?php echo ($vehicle['maintenance_status'] === 'good') ? 'selected' : ''; ?>>Good</option>
+                                <option value="due soon" <?php echo ($vehicle['maintenance_status'] === 'due soon') ? 'selected' : ''; ?>>Due Soon</option>
+                                <option value="under maintenance" <?php echo ($vehicle['maintenance_status'] === 'under maintenance') ? 'selected' : ''; ?>>Under Maintenance</option>
+                                <option value="unavailable" <?php echo ($vehicle['maintenance_status'] === 'unavailable') ? 'selected' : ''; ?>>Unavailable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="service_date">Service Date:</label>
+                            <input type="date" name="service_date" id="service_date" value="<?php echo carzo_e($vehicle['service_date']); ?>" />
+                        </div>
+                        <div class="form-group">
+                            <label for="next_service_date">Next Service Date:</label>
+                            <input type="date" name="next_service_date" id="next_service_date" value="<?php echo carzo_e($vehicle['next_service_date']); ?>" />
+                        </div>
+                        <div class="form-group">
+                            <label for="service_cost">Service Cost:</label>
+                            <input type="number" step="0.01" name="service_cost" id="service_cost" value="<?php echo carzo_e($vehicle['service_cost']); ?>" />
+                        </div>
+                        <div class="form-group">
+                            <label for="service_notes">Service Notes:</label>
+                            <textarea name="service_notes" id="service_notes"><?php echo carzo_e($vehicle['service_notes']); ?></textarea>
                         </div>
 
-                        <!-- ACCESSORIES -->
-                        <p>Accessories</p>
+                        <p>Vehicle Features</p>
                         <div class="grid-4">
-                            <div class="accessories">
-                                <input type="checkbox" name="airConditioner" value="1" id="airConditioner" <?php echo ($row['airConditioner'] === '1') ? 'checked' : ''; ?> />
-                                <label for="airConditioner">Air Conditioner</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="powerdoorLocks" value="1" id="powerdoorLocks" <?php echo ($row['powerdoorlocks'] === '1') ? 'checked' : ''; ?>  />
-                                <label for="powerdoorLocks">Power Door Locks</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="antiLockBrakingSystem" value="1" id="antiLockBrakingSystem" <?php echo ($row['antilockbrakingsys'] === '1') ? 'checked' : ''; ?> />
-                                <label for="antiLockBrakingSystem">AntiLock Braking System</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="brakeAssist" value="1" id="brakeAssist" <?php echo ($row['brakeassist'] === '1') ? 'checked' : ''; ?> />
-                                <label for="brakeAssist">Brake Assist</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="powerSteering" value="1" id="powerSteering" <?php echo ($row['powersteering'] === '1') ? 'checked' : ''; ?> />
-                                <label for="powerSteering">Power Steering</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="driverAirbag" value="1" id="driverAirbag" <?php echo ($row['driverairbag'] === '1') ? 'checked' : ''; ?> />
-                                <label for="driverAirbag">Driver Airbag</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="passengerAirbag" value="1" id="passengerAirbag" <?php echo ($row['passengerairbag'] === '1') ? 'checked' : ''; ?> />
-                                <label for="passengerAirbag">Passenger Airbag</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="powerWindows" value="1" id="powerWindows" <?php echo ($row['powerwindow'] === '1') ? 'checked' : ''; ?> />
-                                <label for="powerWindows">Power Windows</label>
-                            </div>
-                            <div class="accessories">
-                                <input type="checkbox" name="CDPlayer" value="1" id="CDPlayer" <?php echo ($row['cdplayer'] === '1') ? 'checked' : ''; ?> />
-                                <label for="CDPlayer">CD Player</label>
-                            </div>
+                            <div class="accessories"><input type="checkbox" name="airConditioner" value="1" id="airConditioner" <?php echo ($vehicle['airConditioner'] === '1') ? 'checked' : ''; ?> /><label for="airConditioner">Air Conditioner</label></div>
+                            <div class="accessories"><input type="checkbox" name="powerdoorLocks" value="1" id="powerdoorLocks" <?php echo ($vehicle['powerdoorlocks'] === '1') ? 'checked' : ''; ?> /><label for="powerdoorLocks">Power Door Locks</label></div>
+                            <div class="accessories"><input type="checkbox" name="antiLockBrakingSystem" value="1" id="antiLockBrakingSystem" <?php echo ($vehicle['antilockbrakingsys'] === '1') ? 'checked' : ''; ?> /><label for="antiLockBrakingSystem">AntiLock Braking System</label></div>
+                            <div class="accessories"><input type="checkbox" name="brakeAssist" value="1" id="brakeAssist" <?php echo ($vehicle['brakeassist'] === '1') ? 'checked' : ''; ?> /><label for="brakeAssist">Brake Assist</label></div>
+                            <div class="accessories"><input type="checkbox" name="powerSteering" value="1" id="powerSteering" <?php echo ($vehicle['powersteering'] === '1') ? 'checked' : ''; ?> /><label for="powerSteering">Power Steering</label></div>
+                            <div class="accessories"><input type="checkbox" name="driverAirbag" value="1" id="driverAirbag" <?php echo ($vehicle['driverairbag'] === '1') ? 'checked' : ''; ?> /><label for="driverAirbag">Driver Airbag</label></div>
+                            <div class="accessories"><input type="checkbox" name="passengerAirbag" value="1" id="passengerAirbag" <?php echo ($vehicle['passengerairbag'] === '1') ? 'checked' : ''; ?> /><label for="passengerAirbag">Passenger Airbag</label></div>
+                            <div class="accessories"><input type="checkbox" name="powerWindows" value="1" id="powerWindows" <?php echo ($vehicle['powerwindow'] === '1') ? 'checked' : ''; ?> /><label for="powerWindows">Power Windows</label></div>
+                            <div class="accessories"><input type="checkbox" name="CDPlayer" value="1" id="CDPlayer" <?php echo ($vehicle['cdplayer'] === '1') ? 'checked' : ''; ?> /><label for="CDPlayer">CD Player</label></div>
                         </div>
-                        
-                        <div class="form-group">
-                                    <label for="vehicleStatus">Vehicle Status:</label>
-                                    <select name="vehicleStatus" id="vehicleStatus">
-                                        <option value="1">Active</option>
-                                        <option value="0">Inactive</option>
-                                    </select>
-                                </div>
-                        <input type="reset" value="Cancel" class="btn second-btn" name="Cancel" id="submit" />
+
+                        <p>Update Images</p>
+                        <div class="grid-3">
+                            <div class="accessories"><label for="vehicleImg1">Image 1:</label><input type="file" name="vehicleImg1" id="vehicleImg1" /></div>
+                            <div class="accessories"><label for="vehicleImg2">Image 2:</label><input type="file" name="vehicleImg2" id="vehicleImg2" /></div>
+                            <div class="accessories"><label for="vehicleImg3">Image 3:</label><input type="file" name="vehicleImg3" id="vehicleImg3" /></div>
+                            <div class="accessories"><label for="vehicleImg4">Image 4:</label><input type="file" name="vehicleImg4" id="vehicleImg4" /></div>
+                        </div>
+                        <input type="reset" value="Cancel" class="btn second-btn" />
                         <input type="submit" value="Update Vehicle" class="btn main-btn" name="updateVehicle" id="updateVehicle" />
                     </form>
-                    <?php
-                        } else {
-                            echo "Brand not found.";
-                        }
-                    }
-                    ?>
                 </div>
             </div>
         </main>
@@ -186,6 +183,5 @@
     </div>
 
     <script src="assets/js/main.js"></script>
-    
 </body>
 </html>

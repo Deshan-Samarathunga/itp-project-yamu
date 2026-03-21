@@ -1,13 +1,15 @@
+<?php require_once __DIR__ . '/../../includes/auth.php'; ?>
+<?php $adminProfileUrl = !empty($_SESSION['admin']['user_id']) ? 'user-edit.php?user_id=' . (int) $_SESSION['admin']['user_id'] : 'profile-setting.php'; ?>
 <aside class="sidenav">
             <!-- Side Navigation -->
             <img class="logo" src="../assets/images/logo/logo-full.png" alt="logo">
             <div class="user-info-box">
                 <div class="user-info-pic">
-                <img src="assets/images/avatar/<?php echo $_SESSION['admin']['avatar'] ?>" alt="avatar">
+                <img src="../assets/images/uploads/avatar/<?php echo carzo_e($_SESSION['admin']['avatar']) ?>" alt="avatar">
                 </div>
                 <div class="user-info-title">
-                    <h3><?php echo $_SESSION['admin']['name'] ?></h3>
-                    <span>Administrator</span>
+                    <h3><?php echo carzo_e($_SESSION['admin']['name']) ?></h3>
+                    <span><?php echo ucfirst(carzo_e($_SESSION['admin']['role'] ?? 'admin')); ?></span>
                 </div>
             </div>
             <div class="sidenav-list">
@@ -47,8 +49,8 @@
                     </div>
                     <ul class="dropdown-list">
                         <li><a href="bookings.php">All Bookings</a></li>
-                        <li><a href="booking-confirmed.php">Confirmed</a></li>
-                        <li><a href="booking-canceled.php">Canceled</a></li>
+                        <li><a href="bookings.php?status=confirmed">Confirmed</a></li>
+                        <li><a href="bookings.php?status=cancelled">Canceled</a></li>
                     </ul>
                 </li>
                 <li class="sidenav-item">
@@ -58,7 +60,31 @@
                     </a>
                 </li>
                 <li class="sidenav-item">
-                    <a href="profile-setting.php" class="nav-links <?php if ($page_title === 'Profile Setting') echo 'active'; ?>">
+                    <a href="reviews.php" class="nav-links <?php if ($page_title === 'Reviews') echo 'active'; ?>">
+                        <i class="ri-star-line"></i>
+                        Reviews
+                    </a>
+                </li>
+                <li class="sidenav-item">
+                    <a href="disputes.php" class="nav-links <?php if ($page_title === 'Disputes') echo 'active'; ?>">
+                        <i class="ri-chat-3-line"></i>
+                        Disputes
+                    </a>
+                </li>
+                <li class="sidenav-item">
+                    <a href="payments.php" class="nav-links <?php if ($page_title === 'Payments') echo 'active'; ?>">
+                        <i class="ri-bank-card-line"></i>
+                        Payments
+                    </a>
+                </li>
+                <li class="sidenav-item">
+                    <a href="promotions.php" class="nav-links <?php if ($page_title === 'Promotions') echo 'active'; ?>">
+                        <i class="ri-coupon-3-line"></i>
+                        Promotions
+                    </a>
+                </li>
+                <li class="sidenav-item">
+                    <a href="<?php echo $adminProfileUrl; ?>" class="nav-links <?php if ($page_title === 'Profile Setting' || (isset($_GET['user_id']) && !empty($_SESSION['admin']['user_id']) && (int) $_GET['user_id'] === (int) $_SESSION['admin']['user_id'])) echo 'active'; ?>">
                         <i class="ri-user-settings-line"></i>
                         Profile 
                     </a>

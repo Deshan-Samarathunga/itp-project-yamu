@@ -1,6 +1,8 @@
 <?php
+    require_once __DIR__ . '/../includes/auth.php';
+    carzo_start_session();
+    carzo_require_admin('index.php');
     $page_title = "Brands"; 
-    session_start(); // Start the session
     include 'includes/config.php'; // Database Connection
 ?>
 <!DOCTYPE html>

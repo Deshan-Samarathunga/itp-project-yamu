@@ -1,55 +1,55 @@
 <?php
-session_start();
-include 'config.php'; // Database Connection
+require_once __DIR__ . '/auth.php';
+carzo_start_session();
+carzo_require_user_roles(['customer', 'driver'], '../signin.php', ['active', 'pending'], '../index.php');
+include 'config.php';
 
 if (isset($_POST['UpdatePassword'])) {
-    $user_id = $_POST['userID'];
+    $sessionUserId = (int) ($_SESSION['user']['user_ID'] ?? 0);
+    $userId = (int) ($_POST['userID'] ?? 0);
     $currentPassword = $_POST['current_password'];
     $newPassword = $_POST['new_password'];
-    $confirmPassword = $_POST["confirm_password"];
+    $confirmPassword = $_POST['confirm_password'];
 
-    // Retrieve the current password from the database
-    $query = "SELECT password FROM Users WHERE user_id = $user_id";
-    $result = mysqli_query($conn, $query);
-
-    if ($result && mysqli_num_rows($result) === 1) {
-        $row = mysqli_fetch_assoc($result);
-        $currentPasswordFromDatabase = $row['password'];
-
-        // Verify if the current password matches
-        if (md5($currentPassword) === $currentPasswordFromDatabase) {
-
-            // Check if the new password and confirm password match
-            if ($newPassword === $confirmPassword) {
-
-                // Update the password in the database
-                $sql_password = "UPDATE Users SET password = md5('$newPassword') WHERE user_id = '$user_id' ";
-                $sql_password_run = mysqli_query($conn, $sql_password);
-
-                if ($sql_password_run) {
-                    $msg = "Password Updated Successfully";
-                    header("Location: ../update-password.php?msg=$msg");
-                    exit();
-                } else {
-                    $error = "Password Update failed";
-                    header("Location: ../update-password.php?error=$error");
-                    exit();
-                }
-
-            } else {
-                $error = "Password confirmation failed. Please try again";
-                header("Location: ../update-password.php?error=$error");
-                exit();
-            }
-        } else {
-            $error = "Invalid current password. Please try again";
-            header("Location: ../update-password.php?error=$error");
-            exit();
-        }
-    } else {
-        $error = "User not found";
-        header("Location: ../update-password.php?error=$error");
-        exit();
+    if ($sessionUserId !== $userId) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'You can only update your own password');
     }
+
+    $user = carzo_fetch_user_by_id($conn, $userId);
+
+    if (!$user) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'User not found');
+    }
+
+    if (!carzo_password_matches($currentPassword, $user['password'])) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'Invalid current password. Please try again');
+    }
+
+    if ($newPassword !== $confirmPassword) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'Password confirmation failed. Please try again');
+    }
+
+    $hashedPassword = carzo_hash_password($newPassword);
+    $stmt = $conn->prepare('UPDATE users SET password = ?, updated_at = NOW() WHERE user_id = ?');
+
+    if (!$stmt) {
+        carzo_redirect_with_message('../update-password.php', 'error', 'Password Update failed');
+    }
+
+    $stmt->bind_param('si', $hashedPassword, $userId);
+
+    if (!$stmt->execute()) {
+        $stmt->close();
+        carzo_redirect_with_message('../update-password.php', 'error', 'Password Update failed');
+    }
+
+    $stmt->close();
+
+    $updatedUser = carzo_fetch_user_by_id($conn, $userId);
+
+    if ($updatedUser) {
+        carzo_set_user_session($updatedUser);
+    }
+
+    carzo_redirect_with_message('../update-password.php', 'msg', 'Password Updated Successfully');
 }
-?>

@@ -20,8 +20,8 @@
     <!-- Page Banner Section -->
     <section class="banner-page">
         <h2>Car Listing</h2>
-        <div class="banner-link">
-            <a href="index.html">Home</a> &gt; <a href="blog.html">Car Listing</a>
+                <div class="banner-link">
+            <a href="index.php">Home</a> &gt; <a href="car-listing.php">Car Listing</a>
         </div>
     </section>
 
@@ -32,7 +32,7 @@
 
 
             <?php 
-                $sql = "SELECT * FROM vehicles WHERE vehicle_status = '1'";
+                $sql = "SELECT * FROM vehicles WHERE listing_status = 'approved' ORDER BY COALESCE(updated_at, reg_date) DESC, vehicle_id DESC";
                 $result = mysqli_query($conn, $sql);
       
                 if ($result->num_rows > 0) {
@@ -67,7 +67,7 @@
                                 </div>
                                 <hr />
                                 <div class="row">
-                                    <h3>Rs.4500 <span>/ Day</span></h3>
+                                    <h3>Rs.<?php echo $row['price']; ?> <span>/ Day</span></h3>
                                     <a href="vehical-details.php?vehicle_id=<?php echo $row['vehicle_id']; ?>" class="btn main-btn">View More</a>
                                 </div>
                             </div>

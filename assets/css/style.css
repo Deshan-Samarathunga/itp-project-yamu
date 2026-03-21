@@ -1203,6 +1203,14 @@ footer hr {
     color: var(--text-gray);
 }
 
+.profile .profile-card .account-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0 18px;
+}
+
 .profile .profile-details {
     width: 73%;
 }
@@ -1354,7 +1362,8 @@ table tbody tr:hover {
 .Status-active-badge,
 .Status-conpleted-badge,
 .Status-pending-badge, 
-.Status-cancelled-badge {
+.Status-cancelled-badge,
+.Status-inactive-badge {
     display: inline-block;
     font-size: 10px;
     font-weight: 900;
@@ -1377,6 +1386,10 @@ table tbody tr:hover {
     color: #FFF;
 }
 .Status-cancelled-badge {
+    background: #fa5151;
+    color: #FFF;
+}
+.Status-inactive-badge {
     background: #fa5151;
     color: #FFF;
 }

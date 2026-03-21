@@ -1,6 +1,7 @@
 <?php
 $page_title = "Book Your Car";
-session_start(); // Start the session
+require_once __DIR__ . '/includes/auth.php';
+carzo_start_session();
 include 'includes/config.php'; // Database Connection
 
 ?>
@@ -23,26 +24,33 @@ include 'includes/config.php'; // Database Connection
     <?php
 
     // Collecting data from query string
-    $vehicleID = $_GET['vehicle_id'];
+    $vehicleID = isset($_GET['vehicle_id']) ? (int) $_GET['vehicle_id'] : 0;
 
     // Assuming you have a unique identifier for the record (e.g., $recordId)
     if ($vehicleID) {
         // Retrieve the record from the database based on the identifier
-        $sql = "SELECT * FROM vehicles WHERE vehicle_id = '$vehicleID'";
+        $sql = "SELECT v.*, u.full_name AS owner_name, u.phone AS owner_phone
+                FROM vehicles v
+                LEFT JOIN users u ON u.user_id = v.owner_user_id
+                WHERE v.vehicle_id = {$vehicleID}
+                  AND v.listing_status = 'approved'
+                LIMIT 1";
         $result = mysqli_query($conn, $sql);
 
         if ($result && mysqli_num_rows($result) > 0) {
             $record = mysqli_fetch_assoc($result);
+            $isBookable = (($record['availability_status'] ?? 'available') === 'available')
+                && !in_array(($record['maintenance_status'] ?? 'good'), ['under maintenance', 'unavailable'], true);
             ?>
 
             <!-- Page Banner Section -->
             <section class="banner-page">
                 <h2>
-                    <?php echo $record['vehicle_title']; ?>
+                    <?php echo carzo_e($record['vehicle_title']); ?>
                 </h2>
                 <div class="banner-link">
-                    <a href="index.html">Home</a> &gt; <a href="car-listing.php">Vehicle Listing</a> &gt; <a href="#">
-                        <?php echo $record['vehicle_title']; ?>
+                    <a href="index.php">Home</a> &gt; <a href="car-listing.php">Vehicle Listing</a> &gt; <a href="#">
+                        <?php echo carzo_e($record['vehicle_title']); ?>
                     </a>
                 </div>
             </section>
@@ -96,44 +104,58 @@ include 'includes/config.php'; // Database Connection
                                 <tr>
                                     <td>Brand:</td>
                                     <th>
-                                        <?php echo $record['vehicle_brand']; ?>
+                                        <?php echo carzo_e($record['vehicle_brand']); ?>
                                     </th>
                                     <td>Model:</td>
                                     <th>
-                                        <?php echo $record['vehicle_title']; ?>
+                                        <?php echo carzo_e($record['vehicle_title']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                     <td>Fuel Type:</td>
                                     <th>
-                                        <?php echo $record['fuel_type']; ?>
+                                        <?php echo carzo_e($record['fuel_type']); ?>
                                     </th>
                                     <td>Year:</td>
                                     <th>
-                                        <?php echo $record['year']; ?>
+                                        <?php echo carzo_e($record['year']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                 <td>Transmission:</td>
                                     <th>
-                                        <?php echo $record['transmission']; ?>
+                                        <?php echo carzo_e($record['transmission']); ?>
                                     </th>
                                     <td>Engine:</td>
                                     <th>
-                                        <?php echo $record['engine_capacity']; ?>
+                                        <?php echo carzo_e($record['engine_capacity']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                     <td>Seats:</td>
                                     <th>
-                                        <?php echo $record['capacity']; ?>
+                                        <?php echo carzo_e($record['capacity']); ?>
+                                    </th>
+                                    <td>Location:</td>
+                                    <th>
+                                        <?php echo carzo_e($record['location']); ?>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td>Availability:</td>
+                                    <th>
+                                        <?php echo carzo_e(ucfirst($record['availability_status'])); ?>
+                                    </th>
+                                    <td>Owner Contact:</td>
+                                    <th>
+                                        <?php echo carzo_e($record['owner_phone']); ?>
                                     </th>
                                 </tr>
                             </table>
 
                             <h3>Vehicle Description</h3>
                             <p>
-                                <?php echo $record['vehicle_desc']; ?>
+                                <?php echo carzo_e($record['vehicle_desc']); ?>
                             </p>
                             <br>
 
@@ -240,34 +262,46 @@ include 'includes/config.php'; // Database Connection
                             <div class="booking-card">
                                 <div class="booking-card-title">
                                     <h3>Rs <h3 id="pricePerDay">
-                                            <?php echo $record['price']; ?>
+                                            <?php echo carzo_e($record['price']); ?>
                                         </h3> <span>/ Day</span></h3>
                                 </div>
                                 <div class="booking-card-body">
                                     <h3>Booking this car</h3>
+                                    <p>
+                                        Availability: <strong><?php echo carzo_e(ucfirst($record['availability_status'])); ?></strong><br>
+                                        Maintenance: <strong><?php echo carzo_e(ucfirst($record['maintenance_status'])); ?></strong>
+                                    </p>
                                     <form action="includes/booking-process.php" method="POST" class="booking-form">
                                         <div class="form-group">
                                             <label for="startDate">Start Date:</label>
-                                            <input type="date" name="startDate" id="startDate" required />
+                                            <input type="date" name="startDate" id="startDate" required <?php echo $isBookable ? '' : 'disabled'; ?> />
                                         </div>
                                         <div class="form-group">
                                             <label for="endDate">End Date:</label>
-                                            <input type="date" name="endDate" id="endDate" required />
+                                            <input type="date" name="endDate" id="endDate" required <?php echo $isBookable ? '' : 'disabled'; ?> />
                                         </div>
                                         <div class="form-group row price-lable">
                                             <h4>Total</h4>
                                             <h4 id="priceText"></h4>
                                         </div>
 
-                                        <?php if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) { ?>
+                                        <?php if (!$isBookable) { ?>
+                                            <p>This vehicle is not available for booking right now.</p>
+                                        <?php } elseif (carzo_is_user_authenticated() && carzo_current_user_role() === 'customer' && ($_SESSION['user']['account_status'] ?? 'active') === 'active') { ?>
                                             <!-- Additional data -->
-                                            <input type="hidden" value="<?php echo $_SESSION['user']['user_ID'] ?>" name="userID">
-                                            <input type="hidden" id="vehicleID" name="vehicleID" value="<?php echo $record['vehicle_id']; ?>">
+                                            <input type="hidden" value="<?php echo (int) $_SESSION['user']['user_ID']; ?>" name="userID">
+                                            <input type="hidden" id="vehicleID" name="vehicleID" value="<?php echo (int) $record['vehicle_id']; ?>">
                                             <input type="hidden" id="priceInput" name="priceInput">
 
                                             <div class="form-group">
                                                 <input type="submit" value="Book Now" name="booking" class="btn main-btn" style="text-align: center; background: #F57C51;">
                                             </div>
+                                        <?php } elseif (carzo_is_admin_authenticated()) { ?>
+                                            <p>Admin accounts manage bookings, listings, payments, and disputes from the admin dashboard.</p>
+                                            <a href="admin/dashboard.php" class="btn main-btn" style="text-align: center;">Open Admin Dashboard</a>
+                                        <?php } elseif (carzo_is_user_authenticated() && carzo_current_user_role() === 'driver') { ?>
+                                            <p>Driver accounts can manage listings from the driver dashboard, but bookings must be placed through a customer account.</p>
+                                            <a href="driver-dashboard.php" class="btn main-btn" style="text-align: center;">Open Driver Dashboard</a>
                                         <?php } else { ?>
                                             <a href="signin.php" class="btn main-btn" style="text-align: center;">Login For Book</a>
                                         <?php } ?>
@@ -283,10 +317,36 @@ include 'includes/config.php'; // Database Connection
 
             <?php
         } else {
-            echo "No record found.";
+            ?>
+            <section class="banner-page">
+                <h2>Vehicle Not Found</h2>
+                <div class="banner-link">
+                    <a href="index.php">Home</a> &gt; <a href="car-listing.php">Vehicle Listing</a>
+                </div>
+            </section>
+            <section class="cars">
+                <div class="container">
+                    <p>The selected vehicle is not available.</p>
+                    <a href="car-listing.php" class="btn main-btn">Back to listings</a>
+                </div>
+            </section>
+            <?php
         }
     } else {
-        echo "Invalid record identifier.";
+        ?>
+        <section class="banner-page">
+            <h2>Vehicle Not Found</h2>
+            <div class="banner-link">
+                <a href="index.php">Home</a> &gt; <a href="car-listing.php">Vehicle Listing</a>
+            </div>
+        </section>
+        <section class="cars">
+            <div class="container">
+                <p>Please choose a valid vehicle from the listing page.</p>
+                <a href="car-listing.php" class="btn main-btn">Back to listings</a>
+            </div>
+        </section>
+        <?php
     }
     ?>
 
@@ -320,11 +380,19 @@ include 'includes/config.php'; // Database Connection
 
         // Function to calculate the date range in days
         function calculateDateRange(startDate, endDate) {
+            if (!startDate || !endDate) {
+                return 0;
+            }
+
             const start = new Date(startDate);
             const end = new Date(endDate);
-            const timeDiff = Math.abs(end.getTime() - start.getTime());
+            if (end < start) {
+                return 0;
+            }
+
+            const timeDiff = end.getTime() - start.getTime();
             const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-            return days; 
+            return Math.max(1, days); 
         }
 
         // Function to handle form submission
@@ -340,13 +408,22 @@ include 'includes/config.php'; // Database Connection
             const totalPrice = pricePerDay * numDaya;
 
             // Display the price
-            document.getElementById('priceText').innerHTML = totalPrice;
-            document.getElementById('priceInput').value = totalPrice;
+            document.getElementById('priceText').innerHTML = totalPrice > 0 ? totalPrice : '';
+
+            if (document.getElementById('priceInput')) {
+                document.getElementById('priceInput').value = totalPrice > 0 ? totalPrice : '';
+            }
         }
 
         // Add event listener to the form
+        const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
-        endDateInput.addEventListener('input', handleFormSubmit);
+        if (startDateInput) {
+            startDateInput.addEventListener('input', handleFormSubmit);
+        }
+        if (endDateInput) {
+            endDateInput.addEventListener('input', handleFormSubmit);
+        }
 
     </script>
 </body>

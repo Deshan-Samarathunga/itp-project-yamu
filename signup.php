@@ -1,4 +1,7 @@
 <?php
+    require_once __DIR__ . '/includes/auth.php';
+    carzo_start_session();
+    carzo_redirect_authenticated_actor();
     $page_title = "Signup";
 ?>
 
@@ -39,6 +42,35 @@
                             <input type="text" name="username" id="username" placeholder="Enter Username" required/>
                         </div>
                         <div class="form-group">
+                            <label for="role">Account Type:</label>
+                            <select name="role" id="role" onchange="toggleDriverFields()" required>
+                                <option value="customer">Customer</option>
+                                <option value="driver">Driver</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number:</label>
+                            <input type="tel" name="phone" id="phone" placeholder="Enter Phone Number"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City:</label>
+                            <input type="text" name="city" id="city" placeholder="Enter City"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <textarea name="address" id="address" placeholder="Enter Address"></textarea>
+                        </div>
+                        <div id="driver-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="license_or_nic">License / NIC:</label>
+                                <input type="text" name="license_or_nic" id="license_or_nic" placeholder="Enter License Number or NIC"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Driver Bio:</label>
+                                <textarea name="bio" id="bio" placeholder="Tell customers a little about yourself"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="password">Password:</label>
                             <input type="password" name="password" id="password" placeholder="Enter Password" required/>
                             <i class="ri-eye-off-line" id="toggle-eye" onclick="togglePassword()"></i>
@@ -50,7 +82,7 @@
                         <div class="form-group-row">
                             <input type="checkbox" name="terms" id="terms" required />
                             <label for="terms"> 
-                                <p>I accept the <a href="#">Terms of Services</a></p>
+                                <p>I accept the <a href="terms&condition.php">Terms of Services</a></p>
                             </label>
                         </div>
                         <div class="form-submit">
@@ -96,6 +128,20 @@
             }
         }
 
+        function toggleDriverFields() {
+            const role = document.getElementById("role").value;
+            const driverFields = document.getElementById("driver-fields");
+            const licenseInput = document.getElementById("license_or_nic");
+
+            if (role === "driver") {
+                driverFields.style.display = "block";
+                licenseInput.required = true;
+            } else {
+                driverFields.style.display = "none";
+                licenseInput.required = false;
+            }
+        }
+
         // Check Password
         function checkPassword() {
             const password = document.getElementById("password").value;
@@ -104,11 +150,12 @@
             if(password != rePassword) {
                 alert("Password Mismatch!");
                 return false;
-            } else {
-                alert("Success!");
-                return true;
             }
+
+            return true;
         }
+
+        toggleDriverFields();
             
     </script>
     <script src="assets/js/main.js"></script>

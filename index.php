@@ -1,7 +1,28 @@
 <?php
+    require_once __DIR__ . '/includes/auth.php';
     $page_title = "Carzo | Book Your Car"; 
-    session_start(); // Start the session
+    carzo_start_session();
     include 'includes/config.php'; // Database Connection
+
+    $heroPrimaryHref = 'car-listing.php';
+    $heroPrimaryText = 'Book Ride';
+    $heroSecondaryHref = 'car-listing.php';
+    $heroSecondaryText = 'Explore Cars';
+
+    if (carzo_is_admin_authenticated()) {
+        $heroPrimaryHref = 'admin/dashboard.php';
+        $heroPrimaryText = 'Admin Dashboard';
+    } elseif (carzo_is_user_authenticated()) {
+        if (carzo_current_user_role() === 'driver') {
+            $heroPrimaryHref = 'driver-dashboard.php';
+            $heroPrimaryText = 'Driver Dashboard';
+            $heroSecondaryHref = 'driver-vehicles.php';
+            $heroSecondaryText = 'My Listings';
+        } else {
+            $heroPrimaryHref = 'my-booking.php';
+            $heroPrimaryText = 'My Bookings';
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -29,8 +50,8 @@
                 <h1>The <span>best</span> way to get a car</h1>
                 <p>If you’re looking for the latest in wireless headphones, look no further. 
                     These are perfect for TV, stereo, home, and cell phone.</p>
-                <a href="#" class="btn main-btn">Book Ride</a>
-                <a href="#" class="btn second-btn">Book Ride</a>
+                <a href="<?php echo carzo_e($heroPrimaryHref); ?>" class="btn main-btn"><?php echo carzo_e($heroPrimaryText); ?></a>
+                <a href="<?php echo carzo_e($heroSecondaryHref); ?>" class="btn second-btn"><?php echo carzo_e($heroSecondaryText); ?></a>
             </div>
         </div>
 
@@ -49,7 +70,7 @@
                         <h3>About Us</h3>
                         <h2>More than 150+ special collection cars</h2>
                         <p>Certain but she but shyness why cottage. Guy the put instrument sir entreaties affronting. Pretended exquisite see cordially the you. Weeks quiet do vexed or whose. Motionless if no to affronting imprudence no precaution. My indulged as disposal strongly attended.</p>
-                        <a href="#" class="btn main-btn">See all cars</a>
+                        <a href="car-listing.php" class="btn main-btn">See all cars</a>
                     </div>
                 </div>
             </div>
@@ -107,7 +128,7 @@
             </div>
             <div class="grid-4">
             <?php
-                $sql = "SELECT * FROM vehicles";
+                $sql = "SELECT * FROM vehicles WHERE listing_status = 'approved' ORDER BY COALESCE(updated_at, reg_date) DESC, vehicle_id DESC";
                 $result = mysqli_query($conn, $sql);
 
                 $itemLimit = 6; // Maximum number of items to display
@@ -149,7 +170,7 @@
                                 </div>
                                 <hr />
                                 <div class="row">
-                                    <h3>Rs.4500 <span>/ Day</span></h3>
+                                    <h3>Rs.<?php echo $row['price']; ?> <span>/ Day</span></h3>
                                     <a href="vehical-details.php?vehicle_id=<?php echo $row['vehicle_id']; ?>" class="btn main-btn">View More</a>
                                 </div>
                             </div>
@@ -160,7 +181,7 @@
                 }
             ?>
             </div>
-            <a href="#" class="btn main-btn">Show All</a>
+            <a href="car-listing.php" class="btn main-btn">Show All</a>
         </div>
     </section>
 
