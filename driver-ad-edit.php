@@ -8,6 +8,7 @@ include 'includes/config.php';
 $page_title = 'Driver Ads';
 $serviceLocations = carzo_driver_service_locations();
 $languageOptions = carzo_driver_language_options();
+$driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
 
 $adId = isset($_GET['ad_id']) ? (int) $_GET['ad_id'] : 0;
 $ad = carzo_driver_ad_fetch($conn, $adId);
@@ -34,11 +35,23 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
                     include 'includes/account-sidebar.php';
                 ?>
                 <div class="profile-details card">
-                    <form action="includes/driver-ad-process.php" method="POST" class="signup-form">
+                    <form action="includes/driver-ad-process.php" method="POST" enctype="multipart/form-data" class="signup-form">
                         <h3>Edit Driver Advertisement</h3>
                         <p>Keep your public driver profile up to date so travelers know where you work and how to contact you.</p>
 
                         <input type="hidden" name="ad_id" value="<?php echo (int) $ad['driver_ad_id']; ?>" />
+
+                        <div class="driver-photo-upload">
+                            <div class="driver-photo-preview">
+                                <img src="<?php echo carzo_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
+                            </div>
+                            <div class="driver-photo-copy">
+                                <h4>Driver Photo</h4>
+                                <p>Upload a clear photo of yourself. Updating this changes the photo shown on your public driver card and detail page.</p>
+                                <input type="file" name="profileImage" id="profileImage" class="avatar-input" accept="image/*">
+                                <label for="profileImage" class="btn second-btn">Change Driver Photo</label>
+                            </div>
+                        </div>
 
                         <div class="form-group">
                             <label for="ad_title">Advertisement Title:</label>
@@ -132,5 +145,25 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
 
     <?php include 'includes/footer.php'; ?>
     <script src="assets/js/main.js"></script>
+    <script>
+        const driverProfileInput = document.getElementById('profileImage');
+        const driverProfilePreview = document.getElementById('driverProfilePreview');
+
+        if (driverProfileInput && driverProfilePreview) {
+            driverProfileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    driverProfilePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
 </body>
 </html>

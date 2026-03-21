@@ -44,6 +44,49 @@ function carzo_driver_ad_fetch($conn, $adId)
     return $ad ?: null;
 }
 
+function carzo_driver_profile_image_upload($currentImage = 'avatar.png')
+{
+    if (!isset($_FILES['profileImage']) || empty($_FILES['profileImage']['name'])) {
+        return [$currentImage ?: 'avatar.png', null];
+    }
+
+    if (($_FILES['profileImage']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        return [false, 'Failed to upload the driver photo'];
+    }
+
+    $uploadedName = basename((string) $_FILES['profileImage']['name']);
+    $extension = strtolower((string) pathinfo($uploadedName, PATHINFO_EXTENSION));
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    if (!in_array($extension, $allowedExtensions, true)) {
+        return [false, 'Please upload a JPG, PNG, GIF, or WEBP image'];
+    }
+
+    $newName = uniqid('driver_', true) . '.' . $extension;
+    $destination = dirname(__DIR__) . '/assets/images/uploads/avatar/' . $newName;
+
+    if (!move_uploaded_file($_FILES['profileImage']['tmp_name'], $destination)) {
+        return [false, 'Failed to upload the driver photo'];
+    }
+
+    return [$newName, null];
+}
+
+function carzo_driver_save_profile_image($conn, $driverUserId, $profileImageName)
+{
+    $stmt = $conn->prepare('UPDATE users SET profile_pic = ?, updated_at = NOW() WHERE user_id = ? LIMIT 1');
+
+    if (!$stmt) {
+        return false;
+    }
+
+    $stmt->bind_param('si', $profileImageName, $driverUserId);
+    $saved = $stmt->execute();
+    $stmt->close();
+
+    return $saved;
+}
+
 function carzo_driver_ad_collect_payload($driverUserId, $existingAd = null)
 {
     $title = trim((string) ($_POST['ad_title'] ?? ''));

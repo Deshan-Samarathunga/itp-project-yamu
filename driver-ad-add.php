@@ -7,6 +7,7 @@ include 'includes/config.php';
 $page_title = 'Driver Ads';
 $serviceLocations = carzo_driver_service_locations();
 $languageOptions = carzo_driver_language_options();
+$driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
 ?>
 
 <!DOCTYPE html>
@@ -26,9 +27,21 @@ $languageOptions = carzo_driver_language_options();
                     include 'includes/account-sidebar.php';
                 ?>
                 <div class="profile-details card">
-                    <form action="includes/driver-ad-process.php" method="POST" class="signup-form">
+                    <form action="includes/driver-ad-process.php" method="POST" enctype="multipart/form-data" class="signup-form">
                         <h3>Create Driver Advertisement</h3>
                         <p>Publish yourself as a tour driver so travelers can discover your route, rates, and specialties.</p>
+
+                        <div class="driver-photo-upload">
+                            <div class="driver-photo-preview">
+                                <img src="<?php echo carzo_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
+                            </div>
+                            <div class="driver-photo-copy">
+                                <h4>Driver Photo</h4>
+                                <p>Upload a clear photo of yourself. This image appears on your public driver card and detail page.</p>
+                                <input type="file" name="profileImage" id="profileImage" class="avatar-input" accept="image/*">
+                                <label for="profileImage" class="btn second-btn">Upload Driver Photo</label>
+                            </div>
+                        </div>
 
                         <div class="form-group">
                             <label for="ad_title">Advertisement Title:</label>
@@ -110,5 +123,25 @@ $languageOptions = carzo_driver_language_options();
 
     <?php include 'includes/footer.php'; ?>
     <script src="assets/js/main.js"></script>
+    <script>
+        const driverProfileInput = document.getElementById('profileImage');
+        const driverProfilePreview = document.getElementById('driverProfilePreview');
+
+        if (driverProfileInput && driverProfilePreview) {
+            driverProfileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    driverProfilePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
 </body>
 </html>
