@@ -159,6 +159,61 @@
     .signup-content {
         width: 100%;
     }
+
+    .profile .row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .profile .profile-card,
+    .profile .profile-details {
+        width: 100%;
+        position: static;
+    }
+
+    .profile form .form-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .profile form .form-group label {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .manage-filter-form,
+    .driver-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .driver-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .driver-dashboard-header .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .driver-hero,
+    .driver-detail-grid,
+    .reviews-list,
+    .driver-dashboard-summary,
+    .driver-dashboard-snapshot {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .driver-stats-row,
+    .driver-dashboard-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .driver-photo-upload {
+        flex-direction: column;
+        align-items: flex-start;
+    }
      
 }
 
@@ -215,5 +270,40 @@
     /* Footer */
     footer .row {
         flex-direction: column;
+    }
+
+    .driver-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .driver-avatar {
+        width: 104px;
+        height: 104px;
+    }
+
+    .driver-avatar.large,
+    .driver-photo-preview {
+        width: 140px;
+        height: 140px;
+    }
+
+    .driver-card-actions .btn,
+    .driver-card-actions.stack .btn {
+        width: 100%;
+    }
+
+    .driver-overview-card {
+        min-height: 132px;
+        padding: 20px;
+    }
+
+    .driver-overview-icon {
+        width: 72px;
+        height: 72px;
+    }
+
+    .driver-overview-icon i {
+        font-size: 28px;
     }
 }

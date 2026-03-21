@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/vehicle-management.php';
 carzo_start_session();
 carzo_require_user_roles(['driver'], '../signin.php', ['active', 'pending', 'verified'], '../access-denied.php');
 include 'config.php';
@@ -59,3 +58,5 @@ if (isset($_GET['deleteVehicle'])) {
 
 
 
+carzo_require_user_roles(['driver'], '../signin.php', ['active', 'pending'], '../index.php');
+carzo_redirect('../driver-ads.php');

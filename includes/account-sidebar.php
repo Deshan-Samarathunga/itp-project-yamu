@@ -40,9 +40,9 @@
                 </a>
             </li>
             <li class="sidenav-item">
-                <a href="driver-vehicles.php" class="nav-links <?php echo $currentAccountPage === 'driver-vehicles' ? 'active' : ''; ?>">
-                    <i class="ri-car-line"></i>
-                    My Listings
+                <a href="driver-ads.php" class="nav-links <?php echo $currentAccountPage === 'driver-ads' ? 'active' : ''; ?>">
+                    <i class="ri-article-line"></i>
+                    My Tour Ads
                 </a>
             </li>
             <li class="sidenav-item">

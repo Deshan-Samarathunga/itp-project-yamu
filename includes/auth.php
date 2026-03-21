@@ -681,7 +681,7 @@ function carzo_badge_class($status)
         return 'Status-conpleted-badge';
     }
 
-    if (in_array($status, ['pending', 'under_review', 'unverified', 'booked', 'due soon', 'open', 'flagged'], true)) {
+    if (in_array($status, ['pending', 'under_review', 'unverified', 'booked', 'due soon', 'open', 'flagged', 'busy', 'on_request'], true)) {
         return 'Status-pending-badge';
     }
 

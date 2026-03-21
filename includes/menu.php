@@ -53,6 +53,9 @@
                         <a class="navbar-link <?php echo isset($page_title) && $page_title === 'Car Listing' ? 'active' : ''; ?>" href="car-listing.php">Explore cars</a>
                     </li>
                     <li class="navbar-item">
+                        <a class="navbar-link <?php echo in_array($page_title ?? '', ['Explore Drivers', 'Driver Details'], true) ? 'active' : ''; ?>" href="drivers.php">Explore drivers</a>
+                    </li>
+                    <li class="navbar-item">
                         <a class="navbar-link <?php echo isset($page_title) && $page_title === 'Blog' ? 'active' : ''; ?>" href="blog.php">Blog</a>
                     </li>
                     <li class="navbar-item">
@@ -96,7 +99,7 @@
                                     <ul class="subnav-content">
                                         <?php if ($signedInRole === 'driver') { ?>
                                             <li><a href="driver-dashboard.php"><i class="ri-roadster-line"></i> Driver Dashboard</a></li>
-                                            <li><a href="driver-vehicles.php"><i class="ri-car-line"></i> My Listings</a></li>
+                                            <li><a href="driver-ads.php"><i class="ri-article-line"></i> My Tour Ads</a></li>
                                             <li><a href="driver-bookings.php"><i class="ri-bookmark-line"></i> Booking Requests</a></li>
                                             <li><a href="driver-reviews.php"><i class="ri-star-line"></i> Reviews</a></li>
                                             <li><a href="driver-disputes.php"><i class="ri-chat-3-line"></i> Disputes</a></li>

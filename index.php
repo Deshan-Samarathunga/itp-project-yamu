@@ -16,8 +16,8 @@
         if (carzo_current_user_role() === 'driver') {
             $heroPrimaryHref = 'driver-dashboard.php';
             $heroPrimaryText = 'Driver Dashboard';
-            $heroSecondaryHref = 'driver-vehicles.php';
-            $heroSecondaryText = 'My Listings';
+            $heroSecondaryHref = 'driver-ads.php';
+            $heroSecondaryText = 'My Tour Ads';
         } else {
             $heroPrimaryHref = 'my-booking.php';
             $heroPrimaryText = 'My Bookings';
