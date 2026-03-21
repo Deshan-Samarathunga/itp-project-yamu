@@ -1,0 +1,219 @@
+/* Large  devices (Desktop) */
+@media screen and (min-width: 1200px) {
+    .process-item:not(:last-of-type)::after {
+        content: "";
+        width: 1px;
+        height: 75%;
+        background: #8c8c8c;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.3;
+    }
+
+    /*  Services Section */
+    .service-tab {
+        width: 50%;
+    }
+}
+/* Medium devices (tablets) */
+@media screen and (max-width:768px) {
+    .text-box {
+        padding: 0;
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 30px;
+    }
+
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .column {
+        width: 100%;
+    }
+
+    h2 {
+        font-size: 40px;
+    }
+
+    h3 {
+        font-size: 15px;
+    }
+
+    /* Main Nav */
+    nav .navbar {
+        z-index: 99;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        position: fixed;
+        top: 0;
+        right: -300px;
+        height: 100%;
+        width: 300px;
+        background: #FFF;
+        box-shadow: 0 10px 5px rgba(0, 0, 0, 0.1);
+        padding: 80px 0 0 10px;
+        transition: all .5s;    
+    }
+
+    nav .navbar-item {
+        margin-left: 30px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    nav .ri-menu-3-line{
+        display: block;
+        margin: 10px;
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    nav .ri-close-line {
+        display: block;
+    }
+
+    nav.scrolled-down {
+        backdrop-filter: none !important;
+        background: #FFF;
+    }
+
+    nav .sign-btn .navbar-item {
+       margin-bottom: 0;
+       margin-left: 5px;
+    }
+
+    nav .sign-btn .navbar-item:last-child {
+        display: none;
+    }
+
+    /* Hero Section */
+    .hero .text-box {
+        width: 70%;
+    }
+
+    /* About Section */
+    .about .row {
+        flex-direction: column-reverse;
+    }
+
+    /* How it works Section */
+    #progressbar {
+        width: 100%;
+    }
+
+    /* Services Section */
+    .service .row {
+        flex-direction: column;
+    }
+
+    .service .service-tab {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        margin-bottom: 30px;
+    }
+
+    .service .service-tab .tab-item {
+        min-width: 200px;
+    }
+
+    .service .service-dec {
+        width: 100%;
+    }
+
+    /* FAQ Section */
+    .faq .row {
+        flex-direction: column-reverse;
+    }
+
+    .faq .row .col {
+        width: 100%;
+    }
+
+    .faq img {
+        width: 70%;
+        margin: 0 auto;
+    }
+
+    /* Benner Section */
+    .banner .row {
+        flex-direction: column;
+    }
+
+    .banner .row .banner-col {
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    /*  Register Page */
+    .signup-content {
+        width: 100%;
+    }
+     
+}
+
+/* Small devices (phones) */
+@media screen and (max-width: 480px) {
+
+    .container {
+        width: 90%;
+    }
+
+    .text-box {
+        text-align: center;
+    }
+
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    h2 {
+        font-size: 35px;
+        line-height: 30px;
+    }
+
+    p {
+        font-size: 15px;
+    }
+
+    /* Top Navbar */
+    .top-nav {
+        display: none;
+    }
+
+    /* Hero Section */
+    .hero {
+        background-image: linear-gradient(rgba(255, 255, 255, 1),rgba(255, 255, 255, 0.5)), url(../images/bg.png);
+        background-position: right;
+        height: 100vh;
+    }
+
+    .hero .text-box {
+        width: 80%;
+    }
+
+    .hero .text-box h1 {
+        font-size: 50px;
+    }
+
+    /*  How it works Section */
+    .process-item {
+        text-align: center;
+    }
+
+    /* Footer */
+    footer .row {
+        flex-direction: column;
+    }
+}
