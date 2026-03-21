@@ -109,11 +109,11 @@ $result = mysqli_query($conn, $sql);
             <div class="main-cards">
                 <div class="card">
                     <h3>Listed Vehicles</h3>
-                    <div class="card-title" style="align-items: flex-end; gap: 10px; flex-wrap: wrap;">
+                    <div class="card-title">
                         <div class="search-box">
                             <input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search vehicle...">
                         </div>
-                        <form action="" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <form action="" method="GET">
                             <select name="listing_status" style="width: 170px;">
                                 <option value="">All Listings</option>
                                 <?php foreach ($allowedListingStatuses as $allowedListingStatus) { ?>
@@ -143,6 +143,7 @@ $result = mysqli_query($conn, $sql);
                             <a href="vehicle-add.php" class="btn main-btn">Add New +</a>
                         </form>
                     </div>
+                    <div class="table-wrap">
                     <table id="table">
                         <thead>
                             <tr>
@@ -162,7 +163,7 @@ $result = mysqli_query($conn, $sql);
                                 while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr>
                                         <td><?php echo (int) $row['vehicle_id']; ?></td>
-                                        <td><img src="assets/images/uploads/vehicles/<?php echo carzo_e($row['vImg1']); ?>" alt="vehicle" style="width: 80px; height: 80px; object-fit: cover;"></td>
+                                        <td class="image-cell"><img src="assets/images/uploads/vehicles/<?php echo carzo_e($row['vImg1']); ?>" alt="vehicle" class="table-thumb table-thumb--lg"></td>
                                         <td>
                                             <?php echo carzo_e($row['vehicle_title']); ?><br>
                                             <small><?php echo carzo_e($row['vehicle_brand']); ?> | <?php echo carzo_e($row['registration_number']); ?></small>
@@ -175,9 +176,11 @@ $result = mysqli_query($conn, $sql);
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($row['availability_status'])); ?>"><?php echo carzo_e(ucfirst($row['availability_status'])); ?></span></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($row['listing_status'])); ?>"><?php echo carzo_e(ucfirst($row['listing_status'])); ?></span></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($row['maintenance_status'])); ?>"><?php echo carzo_e(ucfirst($row['maintenance_status'])); ?></span></td>
-                                        <td>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                             <a href="vehicle-edit.php?vehicle_id=<?php echo (int) $row['vehicle_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
                                             <a href="includes/vehicle-process.php?vehicle_id=<?php echo (int) $row['vehicle_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php }
@@ -188,6 +191,7 @@ $result = mysqli_query($conn, $sql);
                             <?php } ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </main>

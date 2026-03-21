@@ -23,10 +23,10 @@ $result = mysqli_query($conn, $sql);
         <h2>Promotions</h2>
         <div class="main-cards">
             <div class="card">
-                <div class="card-title">
-                    <div></div>
+                <div class="card-title card-title-end">
                     <a href="promotion-add.php" class="btn main-btn">Add Promotion +</a>
                 </div>
+                <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
@@ -51,9 +51,11 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo (int) $row['usage_count']; ?> / <?php echo (int) ($row['usage_limit'] ?: 0); ?></td>
                                     <td><?php echo carzo_e($row['vehicle_title'] ?: 'All vehicles'); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst($row['status'])); ?></span></td>
-                                    <td>
+                                    <td class="action-cell">
+                                        <div class="table-actions">
                                         <a href="promotion-edit.php?promotion_id=<?php echo (int) $row['promotion_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
                                         <a href="includes/promotion-process.php?deletePromotion=<?php echo (int) $row['promotion_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php }
@@ -62,6 +64,7 @@ $result = mysqli_query($conn, $sql);
                         <?php } ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </main>

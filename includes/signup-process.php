@@ -48,7 +48,7 @@ if (isset($_POST['signup'])) {
 
     $emptyDob = '';
     $stmt->bind_param(
-        'sssssssssssss',
+        'ssssssssssssss',
         $username,
         $hashedPassword,
         $role,

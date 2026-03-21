@@ -34,9 +34,9 @@ $result = mysqli_query($conn, $sql);
         <h2>Reviews</h2>
         <div class="main-cards">
             <div class="card">
-                <div class="card-title" style="align-items: flex-end; gap: 10px; flex-wrap: wrap;">
+                <div class="card-title">
                     <div class="search-box"><input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search booking no..."></div>
-                    <form method="GET" style="display:flex; gap:10px; align-items:center;">
+                    <form method="GET">
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
@@ -47,6 +47,7 @@ $result = mysqli_query($conn, $sql);
                         <a href="reviews.php" class="btn second-btn">Reset</a>
                     </form>
                 </div>
+                <div class="table-wrap">
                 <table id="table">
                     <thead>
                         <tr>
@@ -71,10 +72,12 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo str_repeat('★', (int) $row['rating']); ?></td>
                                     <td><?php echo carzo_e($row['comment']); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst($row['status'])); ?></span></td>
-                                    <td>
+                                    <td class="action-cell">
+                                        <div class="table-actions">
                                         <a href="includes/review-process.php?review_id=<?php echo (int) $row['review_id']; ?>&status=visible" class="edit-badge" title="Visible"><i class="ri-eye-line"></i></a>
                                         <a href="includes/review-process.php?review_id=<?php echo (int) $row['review_id']; ?>&status=flagged" class="edit-badge" title="Flag"><i class="ri-flag-line"></i></a>
                                         <a href="includes/review-process.php?review_id=<?php echo (int) $row['review_id']; ?>&status=hidden" class="del-badge" title="Hide"><i class="ri-eye-off-line"></i></a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php }
@@ -83,6 +86,7 @@ $result = mysqli_query($conn, $sql);
                         <?php } ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </main>

@@ -112,11 +112,11 @@ $result = mysqli_query($conn, $sql);
             <div class="main-cards">
                 <div class="card">
                     <h3>Bookings Info</h3>
-                    <div class="card-title" style="align-items: flex-end; gap: 10px; flex-wrap: wrap;">
+                    <div class="card-title">
                         <div class="search-box">
                             <input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search booking no...">
                         </div>
-                        <form action="" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <form action="" method="GET">
                             <select name="status" style="width: 170px;">
                                 <option value="">All Statuses</option>
                                 <?php foreach ($allowedStatuses as $allowedStatus) { ?>
@@ -137,6 +137,7 @@ $result = mysqli_query($conn, $sql);
                             <a href="bookings.php" class="btn second-btn">Reset</a>
                         </form>
                     </div>
+                    <div class="table-wrap">
                     <table id="table">
                         <thead>
                             <tr>
@@ -177,7 +178,8 @@ $result = mysqli_query($conn, $sql);
                                         <td><?php echo carzo_e($row['total']); ?></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($paymentStatus)); ?>"><?php echo carzo_e(ucfirst($paymentStatus)); ?></span></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span></td>
-                                        <td>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                             <a href="booking-details.php?bookingID=<?php echo (int) $row['booking_id']; ?>" class="edit-badge" title="View"><i class="ri-eye-line"></i></a>
                                             <?php if ($status === 'pending') { ?>
                                                 <a href="includes/booking-process.php?action=confirm&booking_id=<?php echo (int) $row['booking_id']; ?>" class="edit-badge" title="Confirm"><i class="ri-check-fill"></i></a>
@@ -187,6 +189,7 @@ $result = mysqli_query($conn, $sql);
                                                 <a href="includes/booking-process.php?action=cancel&booking_id=<?php echo (int) $row['booking_id']; ?>" class="del-badge" title="Cancel"><i class="ri-close-circle-fill"></i></a>
                                             <?php } ?>
                                             <a href="includes/booking-process.php?deleteBooking=<?php echo (int) $row['booking_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php }
@@ -197,6 +200,7 @@ $result = mysqli_query($conn, $sql);
                             <?php } ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </main>

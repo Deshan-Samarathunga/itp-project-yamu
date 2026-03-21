@@ -41,9 +41,9 @@ $result = mysqli_query($conn, $sql);
         <h2>Payments</h2>
         <div class="main-cards">
             <div class="card">
-                <div class="card-title" style="align-items: flex-end; gap: 10px; flex-wrap: wrap;">
+                <div class="card-title">
                     <div class="search-box"><input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search booking no..."></div>
-                    <form method="GET" style="display:flex; gap:10px; align-items:center;">
+                    <form method="GET">
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
@@ -60,6 +60,7 @@ $result = mysqli_query($conn, $sql);
                         <a href="payments.php" class="btn second-btn">Reset</a>
                     </form>
                 </div>
+                <div class="table-wrap">
                 <table id="table">
                     <thead>
                         <tr>
@@ -84,11 +85,13 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['payment_method']))); ?></td>
                                     <td><?php echo carzo_money($row['final_amount']); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
-                                    <td>
+                                    <td class="action-cell">
+                                        <div class="table-actions">
                                         <a href="includes/payment-process.php?payment_id=<?php echo (int) $row['payment_id']; ?>&status=paid" class="edit-badge" title="Paid"><i class="ri-check-fill"></i></a>
                                         <a href="includes/payment-process.php?payment_id=<?php echo (int) $row['payment_id']; ?>&status=failed" class="del-badge" title="Failed"><i class="ri-close-fill"></i></a>
                                         <a href="includes/payment-process.php?payment_id=<?php echo (int) $row['payment_id']; ?>&status=refunded" class="edit-badge" title="Refunded"><i class="ri-reply-line"></i></a>
                                         <a href="../invoice.php?payment_id=<?php echo (int) $row['payment_id']; ?>" class="Status-active-badge">Invoice</a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php }
@@ -97,6 +100,7 @@ $result = mysqli_query($conn, $sql);
                         <?php } ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </main>

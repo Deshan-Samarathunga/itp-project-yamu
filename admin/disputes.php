@@ -33,9 +33,9 @@ $result = mysqli_query($conn, $sql);
         <h2>Disputes</h2>
         <div class="main-cards">
             <div class="card">
-                <div class="card-title" style="align-items: flex-end; gap: 10px; flex-wrap: wrap;">
+                <div class="card-title">
                     <div class="search-box"><input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search booking no..."></div>
-                    <form method="GET" style="display:flex; gap:10px; align-items:center;">
+                    <form method="GET">
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
@@ -46,6 +46,7 @@ $result = mysqli_query($conn, $sql);
                         <a href="disputes.php" class="btn second-btn">Reset</a>
                     </form>
                 </div>
+                <div class="table-wrap">
                 <table id="table">
                     <thead>
                         <tr>
@@ -68,7 +69,7 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo carzo_e($row['subject']); ?></td>
                                     <td><?php echo carzo_e($row['category']); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
-                                    <td><a href="dispute-view.php?complaint_id=<?php echo (int) $row['complaint_id']; ?>" class="Status-active-badge">View</a></td>
+                                    <td class="action-cell"><div class="table-actions"><a href="dispute-view.php?complaint_id=<?php echo (int) $row['complaint_id']; ?>" class="Status-active-badge">View</a></div></td>
                                 </tr>
                             <?php }
                         } else { ?>
@@ -76,6 +77,7 @@ $result = mysqli_query($conn, $sql);
                         <?php } ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </main>

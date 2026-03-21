@@ -63,29 +63,28 @@
                 <div class="card">
                     <h3>Users</h3>
                     <div class="card-title">
-                        <form action="" method="GET" style="width: 100%; margin: 0;">
-                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                <div class="search-box">
-                                    <input type="text" name="search" value="<?php echo carzo_e($search); ?>" placeholder="Search users..." />
-                                </div>
-                                <select name="role" style="width: 180px;">
-                                    <option value="">All Roles</option>
-                                    <option value="customer" <?php echo (isset($_GET['role']) && $_GET['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
-                                    <option value="driver" <?php echo (isset($_GET['role']) && $_GET['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
-                                    <option value="admin" <?php echo (isset($_GET['role']) && $_GET['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
-                                </select>
-                                <select name="status" style="width: 180px;">
-                                    <option value="">All Statuses</option>
-                                    <option value="active" <?php echo ($statusFilter === 'active') ? 'selected' : ''; ?>>Active</option>
-                                    <option value="pending" <?php echo ($statusFilter === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                    <option value="suspended" <?php echo ($statusFilter === 'suspended') ? 'selected' : ''; ?>>Suspended</option>
-                                </select>
-                                <button type="submit" class="btn second-btn">Filter</button>
-                                <a href="users.php" class="btn second-btn">Reset</a>
-                                <a href="user-add.php" class="btn main-btn">Add New +</a>
+                        <form action="" method="GET">
+                            <div class="search-box">
+                                <input type="text" name="search" value="<?php echo carzo_e($search); ?>" placeholder="Search users..." />
                             </div>
+                            <select name="role" style="width: 180px;">
+                                <option value="">All Roles</option>
+                                <option value="customer" <?php echo (isset($_GET['role']) && $_GET['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
+                                <option value="driver" <?php echo (isset($_GET['role']) && $_GET['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
+                                <option value="admin" <?php echo (isset($_GET['role']) && $_GET['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                            </select>
+                            <select name="status" style="width: 180px;">
+                                <option value="">All Statuses</option>
+                                <option value="active" <?php echo ($statusFilter === 'active') ? 'selected' : ''; ?>>Active</option>
+                                <option value="pending" <?php echo ($statusFilter === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                <option value="suspended" <?php echo ($statusFilter === 'suspended') ? 'selected' : ''; ?>>Suspended</option>
+                            </select>
+                            <button type="submit" class="btn second-btn">Filter</button>
+                            <a href="users.php" class="btn second-btn">Reset</a>
+                            <a href="user-add.php" class="btn main-btn">Add New +</a>
                         </form>
                     </div>
+                    <div class="table-wrap">
                     <table id="table">
                         <thead>
                             <tr>
@@ -111,7 +110,7 @@
                                     ?>
                                     <tr>
                                         <td><?php echo carzo_e($row['user_id']); ?></td>
-                                        <td><img src="../assets/images/uploads/avatar/<?php echo carzo_e($row['profile_pic']); ?>" alt="avatar" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50px"></td>
+                                        <td class="image-cell"><img src="../assets/images/uploads/avatar/<?php echo carzo_e($row['profile_pic']); ?>" alt="avatar" class="table-avatar"></td>
                                         <td><?php echo carzo_e($row['full_name']); ?></td>
                                         <td><?php echo carzo_e(ucfirst($row['role'])); ?></td>
                                         <td><span class="<?php echo carzo_e($statusClass); ?>"><?php echo carzo_e(ucfirst($row['account_status'])); ?></span></td>
@@ -120,7 +119,8 @@
                                         <td><?php echo carzo_e($row['phone']); ?></td>
                                         <td><?php echo carzo_e($row['license_or_nic']); ?></td>
                                         <td><?php echo carzo_e($row['created_at'] ?: $row['rag_date']); ?></td>
-                                        <td>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                             <a class="edit-badge" title="Edit" href="user-edit.php?user_id=<?php echo $row['user_id']; ?>"><i class="ri-pencil-fill"></i></a>
                                             <?php if ($row['account_status'] === 'active') { ?>
                                                 <a class="del-badge" title="Suspend" href="includes/user-process.php?action=suspend&user_id=<?php echo $row['user_id']; ?>"><i class="ri-pause-fill"></i></a>
@@ -132,6 +132,7 @@
                                                 <a class="del-badge" title="Reject Driver" href="includes/user-process.php?action=reject-driver&user_id=<?php echo $row['user_id']; ?>"><i class="ri-close-fill"></i></a>
                                             <?php } ?>
                                             <a class="del-badge" title="Delete" href="includes/user-process.php?action=delete&user_id=<?php echo $row['user_id']; ?>"><i class="ri-delete-bin-7-fill"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php
@@ -143,6 +144,7 @@
                         ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </main>

@@ -41,6 +41,7 @@
                         </div>
                         <a href="brand-add.php" class="btn main-btn">Add New +</a>
                     </div>
+                    <div class="table-wrap">
                     <table id="table">
                         <thead>
                             <tr>
@@ -66,7 +67,7 @@
                                     <tr>
                                         <td><?php echo $row['brand_id']; ?></td>
                                         <td><?php echo $row['brand_name']; ?></td>
-                                        <td><img src="assets/images/uploads/brands/<?php echo $row['brand_logo']; ?>" alt="avatar" style="width: 60px; height: 60px; object-fit: contain;"></td>
+                                        <td class="image-cell"><img src="assets/images/uploads/brands/<?php echo $row['brand_logo']; ?>" alt="avatar" class="table-thumb table-thumb--contain"></td>
                                         <td><?php echo $row['creation_date']; ?></td>
                                         <td><?php echo $row['update_date']; ?></td>
                                         <td>
@@ -76,9 +77,11 @@
                                                     echo "<span class='Status-pending-badge'>Deactive</span>";
                                                 }
                                             ?>
-                                        <td>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                             <a href="brand-edit.php?brand_id=<?php echo $row['brand_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
                                             <a class="del-badge" title="Delete" href="includes/brand-process.php?brand_id=<?php echo $row['brand_id']; ?>"><i class="ri-delete-bin-7-fill"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php
@@ -89,6 +92,7 @@
                         ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </main>
