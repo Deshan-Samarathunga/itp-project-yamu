@@ -65,7 +65,7 @@
                         </tr>
                         <tr>
                             <td><img width="50px" src="assets/images/mail.png" class="mail"></td>
-                            <td>E-mail :<br> carzo@contact.com</td>
+                            <td>E-mail :<br> yamu@contact.com</td>
                         </tr>
                 </table>
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14236.05504441497!2d79.86969128404569!3d6.834866173546113!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25a8d6ec1f8c3%3A0x47810f3e7d084753!2sDehiwala-Mount%20Lavinia!5e0!3m2!1sen!2slk!4v1685131915124!5m2!1sen!2slk" width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>

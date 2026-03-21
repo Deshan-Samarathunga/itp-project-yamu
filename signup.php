@@ -28,7 +28,7 @@
                 <div class="signup-content">
                     <form action="includes/signup-process.php" method="POST" class="signup-form" onsubmit="return checkPassword()">
                         <h3>Create an Account</h3>
-                        <p>Lets start with <span>CARZO</span></p>
+                        <p>Lets start with <span>&#3514;&#3512;&#3540;</span></p>
                         <div class="form-group">
                             <label for="fullName">Full Name:</label>
                             <input type="text" name="fullName" id="fullName" placeholder="Enter Name" required/>

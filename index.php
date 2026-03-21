@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    $page_title = "Carzo | Book Your Car"; 
+    $page_title = "&#3514;&#3512;&#3540; | Book Your Car"; 
     carzo_start_session();
     include 'includes/config.php'; // Database Connection
 

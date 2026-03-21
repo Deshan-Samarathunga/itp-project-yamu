@@ -123,7 +123,7 @@
         <div class="container">
             <div class="grid-4">
                 <div class="footer-col">
-                    <img src="assets/images/logo/logo-full-1.png" alt="logo" class="footer-logo-img">
+                    <img src="assets/images/logo/logo-full.png" alt="Yamu logo" class="footer-logo-img">
                     <p>Lorem ipsum dolor sit amet, do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniamquis.</p>
                     <div class="social-icon">
                         <a href="#" title="facebook"> 

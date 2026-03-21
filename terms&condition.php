@@ -1,5 +1,5 @@
 <?php
-    $page_title = "Carzo | Book Your Car"; 
+    $page_title = "&#3514;&#3512;&#3540; | Book Your Car"; 
     session_start(); // Start the session
 ?>
 
@@ -20,7 +20,7 @@
     <section class="banner-page">
         <h2>Terms & Conditions</h2>
         <div class="banner-link">
-            <a href="index.html">Home</a> &gt; <a href="terms&condition.html">Terms & Conditions</a>
+            <a href="index.php">Home</a> &gt; <a href="terms&condition.php">Terms & Conditions</a>
         </div>
     </section>
 
@@ -30,11 +30,11 @@
             <div class="card">
                 <div class="card-body">
                     <h3>Terms and Conditions</h3>
-                    <p>Welcome to carzo !</p>
+                    <p>Welcome to &#3514;&#3512;&#3540;!</p>
                     <br>
-                    <p>These terms and conditions outline the rules and regulations for the use of carzo's Website, located at carzo.com.</p>
+                    <p>These terms and conditions outline the rules and regulations for the use of &#3514;&#3512;&#3540;'s website, located at yamu.com.</p>
                     <p>
-                        By accessing this website we assume you accept these terms and conditions. Do not continue to use carzo if you do not agree to take all of the terms and conditions stated on this page.
+                        By accessing this website we assume you accept these terms and conditions. Do not continue to use &#3514;&#3512;&#3540; if you do not agree to take all of the terms and conditions stated on this page.
                     </p>
                     <br>
                     <p>
@@ -44,7 +44,7 @@
                     <br><br>
                     <h3>Cookies</h3>
                     <p>
-                        We employ the use of cookies. By accessing carzo , you agreed to use cookies in agreement with the carzo's Privacy Policy.
+                        We employ the use of cookies. By accessing &#3514;&#3512;&#3540;, you agree to use cookies in agreement with &#3514;&#3512;&#3540;'s Privacy Policy.
                     </p>
                     <br>
                     <p>
@@ -54,25 +54,25 @@
                     <br><br>
                     <h3>License</h3>
                     <p>
-                        Unless otherwise stated, carzo and/or its licensors own the intellectual property rights for all material on carzo . All intellectual property rights are reserved. You may access this from carzo for your own personal use subjected to restrictions set in these terms and conditions.
+                        Unless otherwise stated, &#3514;&#3512;&#3540; and/or its licensors own the intellectual property rights for all material on &#3514;&#3512;&#3540;. All intellectual property rights are reserved. You may access this from &#3514;&#3512;&#3540; for your own personal use subjected to restrictions set in these terms and conditions.
                     </p>
                     <br>
                     <p>You must not:</p>
                     <br>
                     <ol>
-                        <li style="margin:0 0 10px 10px;">Republish material from carzo</li>
-                        <li style="margin:0 0 10px 10px;">Sell, rent or sub-license material from carzo</li>
-                        <li style="margin:0 0 10px 10px;">Reproduce, duplicate or copy material from carzo</li>
-                        <li style="margin:0 0 10px 10px;">Redistribute content from carzo</li>
+                        <li style="margin:0 0 10px 10px;">Republish material from &#3514;&#3512;&#3540;</li>
+                        <li style="margin:0 0 10px 10px;">Sell, rent or sub-license material from &#3514;&#3512;&#3540;</li>
+                        <li style="margin:0 0 10px 10px;">Reproduce, duplicate or copy material from &#3514;&#3512;&#3540;</li>
+                        <li style="margin:0 0 10px 10px;">Redistribute content from &#3514;&#3512;&#3540;</li>
                     </ol>
 
                     <br>
                     <p>
-                        Parts of this website offer an opportunity for users to post and exchange opinions and information in certain areas of the website. carzo does not filter, edit, publish or review Comments prior to their presence on the website. Comments do not reflect the views and opinions of carzo,its agents and/or affiliates. Comments reflect the views and opinions of the person who post their views and opinions. To the extent permitted by applicable laws, carzo shall not be liable for the Comments or for any liability, damages or expenses caused and/or suffered as a result of any use of and/or posting of and/or appearance of the Comments on this website.
+                        Parts of this website offer an opportunity for users to post and exchange opinions and information in certain areas of the website. &#3514;&#3512;&#3540; does not filter, edit, publish or review comments prior to their presence on the website. Comments do not reflect the views and opinions of &#3514;&#3512;&#3540;, its agents, or affiliates. Comments reflect the views and opinions of the person who posts them. To the extent permitted by applicable laws, &#3514;&#3512;&#3540; shall not be liable for the comments or for any liability, damages, or expenses caused and/or suffered as a result of any use of and/or posting of and/or appearance of the comments on this website.
                     </p>
                     <br>
                     <p>
-                        carzo reserves the right to monitor all Comments and to remove any Comments which can be considered inappropriate, offensive or causes breach of these Terms and Conditions.
+                        &#3514;&#3512;&#3540; reserves the right to monitor all comments and to remove any comments which can be considered inappropriate, offensive, or in breach of these Terms and Conditions.
                     </p>
                 </div>
             </div>

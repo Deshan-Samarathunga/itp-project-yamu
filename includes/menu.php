@@ -4,6 +4,7 @@
     $signedInUser = carzo_current_user();
     $signedInRole = $signedInUser['role'] ?? 'customer';
     $signedInAdmin = $_SESSION['admin'] ?? null;
+    $currentPage = basename($_SERVER['PHP_SELF'] ?? '');
 ?>
 <!-- Top Navbar -->
         <div class="top-nav">
@@ -11,7 +12,7 @@
                 <div class="contact-info row">
                     <div>
                         <i class="ri-mail-line"></i>
-                        <a href="mailto: abc@example.com">carzo@contact.com</a>
+                        <a href="mailto:yamu@contact.com">yamu@contact.com</a>
                     </div>
                     <div>
                         <i class="ri-phone-line"></i>
@@ -39,13 +40,13 @@
             <div class="container">
                 <!-- Logo -->
                 <a href="index.php" class="">
-                    <img class="navbar-brand" src="assets/images/logo/logo-full.png" alt="logo">
+                    <img class="navbar-brand" src="assets/images/logo/logo-full.png" alt="Yamu logo">
                 </a>
                 <!-- Navigation -->
                 <ul class="navbar" id="navbar">
                     <i class="ri-close-line" onclick="hideMenu()"></i>
                     <li class="navbar-item">
-                        <a class="navbar-link <?php echo isset($page_title) && $page_title === 'Carzo | Book Your Car' ? 'active' : ''; ?>" href="index.php">Home</a>
+                        <a class="navbar-link <?php echo $currentPage === 'index.php' ? 'active' : ''; ?>" href="index.php">Home</a>
                     </li>
                     <li class="navbar-item">
                         <a class="navbar-link <?php echo isset($page_title) && $page_title === 'Car Listing' ? 'active' : ''; ?>" href="car-listing.php">Explore cars</a>

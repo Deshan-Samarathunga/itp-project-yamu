@@ -22,11 +22,10 @@ body {
 .grid-container {
     display: grid;
     grid-template-columns: 240px 1fr;
-    grid-template-rows: 70px 1fr 60px;
+    grid-template-rows: 70px 1fr;
     grid-template-areas:
         "sidenav header"
-        "sidenav main"
-        "sidenav footer";
+        "sidenav main";
     height: 100vh;
 }
 
@@ -536,12 +535,7 @@ input[type="reset"] {
 */ 
 
 .footer {
-    grid-area: footer;
-    background-color: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 3%;
+    display: none;
 }
 
 /* 
