@@ -20,7 +20,7 @@ if (isset($_POST['signin'])) {
         carzo_redirect_with_message('../signin.php', 'error', 'Your account has been suspended. Please contact support.');
     }
 
-    if ($role === 'admin') {
+    if (carzo_is_admin_panel_role($role)) {
         carzo_set_admin_session_from_user($user);
         carzo_redirect_with_message('../admin/dashboard.php', 'msg', 'Signin Successful');
     }

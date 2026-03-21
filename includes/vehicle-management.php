@@ -89,7 +89,7 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
     $price = (float) ($_POST['price'] ?? 0);
     $location = carzo_escape($conn, $_POST['location'] ?? '');
     $registrationNumber = carzo_escape($conn, $_POST['registration_number'] ?? '');
-    $listingStatus = carzo_vehicle_normalize_listing_status($_POST['listing_status'] ?? ($existingVehicle['listing_status'] ?? ($submittedByRole === 'admin' ? 'approved' : 'pending')));
+    $listingStatus = carzo_vehicle_normalize_listing_status($_POST['listing_status'] ?? ($existingVehicle['listing_status'] ?? (carzo_is_admin_panel_role($submittedByRole) ? 'approved' : 'pending')));
     $availabilityStatus = carzo_vehicle_normalize_availability_status($_POST['availability_status'] ?? ($existingVehicle['availability_status'] ?? 'available'));
     $maintenanceStatus = carzo_vehicle_normalize_maintenance_status($_POST['maintenance_status'] ?? ($existingVehicle['maintenance_status'] ?? 'good'));
     $serviceDate = trim((string) ($_POST['service_date'] ?? ''));
@@ -98,7 +98,7 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
     $serviceCost = trim((string) ($_POST['service_cost'] ?? ''));
     $serviceCost = $serviceCost === '' ? null : (float) $serviceCost;
 
-    if ($submittedByRole !== 'admin' && $listingStatus === 'approved') {
+    if (!carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved') {
         $listingStatus = 'pending';
     }
 
@@ -164,10 +164,10 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
         'service_notes' => $serviceNotes,
         'service_cost' => $serviceCost === null ? 'NULL' : $serviceCost,
         'vehicle_status' => $vehicleStatus,
-        'approved_by' => $submittedByRole === 'admin' && $listingStatus === 'approved'
+        'approved_by' => carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
             ? (int) ($_SESSION['admin']['user_id'] ?? $ownerUserId)
             : (($existingVehicle && !empty($existingVehicle['approved_by'])) ? (int) $existingVehicle['approved_by'] : 'NULL'),
-        'approved_at' => $submittedByRole === 'admin' && $listingStatus === 'approved'
+        'approved_at' => carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
             ? 'NOW()'
             : (($existingVehicle && !empty($existingVehicle['approved_at'])) ? "'" . carzo_escape($conn, $existingVehicle['approved_at']) . "'" : 'NULL'),
         'images' => $images,

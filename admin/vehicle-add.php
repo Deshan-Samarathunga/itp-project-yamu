@@ -5,7 +5,7 @@
     $page_title = "Vehicles-add"; 
     include 'includes/config.php';
     $brandResult = mysqli_query($conn, "SELECT * FROM brands WHERE brand_status = 1 ORDER BY brand_name ASC");
-    $ownerResult = mysqli_query($conn, "SELECT user_id, full_name, email, role FROM users WHERE role IN ('admin','driver') AND account_status IN ('active','pending') ORDER BY role, full_name ASC");
+    $ownerResult = mysqli_query($conn, "SELECT user_id, full_name, email, role FROM users WHERE role IN ('admin','staff','driver') AND account_status IN ('active','pending') ORDER BY role, full_name ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">

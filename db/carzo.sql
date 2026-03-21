@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) DEFAULT NULL,
   `password` varchar(50) DEFAULT NULL,
-  `role` enum('admin','driver','customer') NOT NULL DEFAULT 'customer',
+  `role` enum('admin','staff','driver','customer') NOT NULL DEFAULT 'customer',
   `full_name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `address` longtext,

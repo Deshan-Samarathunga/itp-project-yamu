@@ -60,9 +60,14 @@ function carzo_money($amount)
 function carzo_normalize_role($role)
 {
     $role = strtolower(trim((string) $role));
-    $allowedRoles = ['admin', 'driver', 'customer'];
+    $allowedRoles = ['admin', 'staff', 'driver', 'customer'];
 
     return in_array($role, $allowedRoles, true) ? $role : 'customer';
+}
+
+function carzo_is_admin_panel_role($role)
+{
+    return in_array(carzo_normalize_role($role), ['admin', 'staff'], true);
 }
 
 function carzo_normalize_account_status($status, $role = 'customer')
@@ -114,6 +119,8 @@ function carzo_build_user_session(array $row)
 
 function carzo_build_admin_session_from_user(array $row)
 {
+    $role = carzo_normalize_role($row['role'] ?? 'admin');
+
     return [
         'admin_id' => $row['user_id'],
         'user_id' => $row['user_id'],
@@ -125,9 +132,9 @@ function carzo_build_admin_session_from_user(array $row)
         'city' => $row['city'] ?? '',
         'phone' => $row['phone'] ?? '',
         'avatar' => !empty($row['profile_pic']) ? $row['profile_pic'] : 'avatar.png',
-        'role' => 'admin',
-        'account_status' => carzo_normalize_account_status($row['account_status'] ?? 'active', 'admin'),
-        'verification_status' => carzo_normalize_verification_status($row['verification_status'] ?? 'verified', 'admin'),
+        'role' => $role,
+        'account_status' => carzo_normalize_account_status($row['account_status'] ?? 'active', $role),
+        'verification_status' => carzo_normalize_verification_status($row['verification_status'] ?? 'verified', $role),
     ];
 }
 
@@ -172,7 +179,7 @@ function carzo_is_user_authenticated()
 
 function carzo_is_admin_authenticated()
 {
-    return isset($_SESSION['admin']) && !empty($_SESSION['admin']['role']);
+    return isset($_SESSION['admin']) && carzo_is_admin_panel_role($_SESSION['admin']['role'] ?? null);
 }
 
 function carzo_current_user()
@@ -188,6 +195,10 @@ function carzo_current_user_role()
 function carzo_public_home_path_for_role($role)
 {
     $role = carzo_normalize_role($role);
+
+    if (carzo_is_admin_panel_role($role)) {
+        return 'admin/dashboard.php';
+    }
 
     if ($role === 'driver') {
         return 'driver-dashboard.php';

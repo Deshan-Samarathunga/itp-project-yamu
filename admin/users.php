@@ -71,6 +71,7 @@
                                 <option value="">All Roles</option>
                                 <option value="customer" <?php echo (isset($_GET['role']) && $_GET['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
                                 <option value="driver" <?php echo (isset($_GET['role']) && $_GET['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
+                                <option value="staff" <?php echo (isset($_GET['role']) && $_GET['role'] === 'staff') ? 'selected' : ''; ?>>Staff</option>
                                 <option value="admin" <?php echo (isset($_GET['role']) && $_GET['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
                             </select>
                             <select name="status" style="width: 180px;">

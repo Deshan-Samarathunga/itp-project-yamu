@@ -9,8 +9,10 @@ if (isset($_POST['signin'])) {
 
     $user = carzo_fetch_user_by_email($conn, $email);
 
-    if ($user && carzo_normalize_role($user['role'] ?? 'customer') === 'admin' && carzo_password_matches($password, $user['password'])) {
-        if (carzo_normalize_account_status($user['account_status'] ?? 'active', 'admin') === 'suspended') {
+    $role = carzo_normalize_role($user['role'] ?? 'customer');
+
+    if ($user && carzo_is_admin_panel_role($role) && carzo_password_matches($password, $user['password'])) {
+        if (carzo_normalize_account_status($user['account_status'] ?? 'active', $role) === 'suspended') {
             carzo_redirect_with_message('../index.php', 'error', 'Your admin account is currently suspended');
         }
 

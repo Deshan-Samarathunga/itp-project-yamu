@@ -1,5 +1,5 @@
 ALTER TABLE `users`
-  ADD COLUMN `role` ENUM('admin','driver','customer') NOT NULL DEFAULT 'customer' AFTER `password`,
+  ADD COLUMN `role` ENUM('admin','staff','driver','customer') NOT NULL DEFAULT 'customer' AFTER `password`,
   MODIFY COLUMN `account_status` VARCHAR(20) NOT NULL DEFAULT 'active',
   ADD COLUMN `license_or_nic` VARCHAR(100) DEFAULT NULL AFTER `dob`,
   ADD COLUMN `verification_status` VARCHAR(20) NOT NULL DEFAULT 'verified' AFTER `license_or_nic`,

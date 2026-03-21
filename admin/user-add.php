@@ -52,6 +52,7 @@
                             <select name="role" id="role" onchange="toggleDriverFields()">
                                 <option value="customer">Customer</option>
                                 <option value="driver">Driver</option>
+                                <option value="staff">Staff</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>

@@ -34,7 +34,9 @@ function carzo_sync_current_admin_session($conn, $userId)
     }
 
     if ($sessionUserId === $userId || ($sessionEmail !== '' && $sessionEmail === $updatedUser['email'])) {
-        if (carzo_normalize_role($updatedUser['role'] ?? 'customer') !== 'admin' || carzo_normalize_account_status($updatedUser['account_status'] ?? 'active', 'admin') === 'suspended') {
+        $updatedRole = carzo_normalize_role($updatedUser['role'] ?? 'customer');
+
+        if (!carzo_is_admin_panel_role($updatedRole) || carzo_normalize_account_status($updatedUser['account_status'] ?? 'active', $updatedRole) === 'suspended') {
             unset($_SESSION['admin']);
             return;
         }

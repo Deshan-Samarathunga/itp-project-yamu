@@ -16,7 +16,7 @@ if (isset($_POST['signup'])) {
     $licenseOrNic = trim($_POST['license_or_nic'] ?? '');
     $bio = trim($_POST['bio'] ?? '');
 
-    if ($role === 'admin') {
+    if (carzo_is_admin_panel_role($role)) {
         $role = 'customer';
     }
 
