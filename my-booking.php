@@ -83,8 +83,8 @@ carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'ac
                                                 <?php echo carzo_e(ucfirst($status)); ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                                 <?php if (in_array($status, ['pending', 'confirmed'], true)) { ?>
                                                     <a href="includes/booking-process.php?cancelBooking=<?php echo $row['booking_id']; ?>" class="del-badge" title="Cancel"><i class="ri-close-fill"></i></a>
                                                 <?php } ?>

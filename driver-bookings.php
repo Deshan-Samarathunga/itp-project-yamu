@@ -40,22 +40,18 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                 ?>
                 <div class="profile-details card">
                     <h3>Booking Requests</h3>
-                    <div class="card-title" style="width: 100%; margin: 20px 0;">
-                        <form action="" method="GET" style="width: 100%; margin: 0;">
-                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                <select name="status" style="width: 180px;">
-                                    <option value="">All Booking Statuses</option>
-                                    <option value="pending" <?php echo ($statusFilter === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                    <option value="confirmed" <?php echo ($statusFilter === 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
-                                    <option value="rejected" <?php echo ($statusFilter === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
-                                    <option value="cancelled" <?php echo ($statusFilter === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                                    <option value="completed" <?php echo ($statusFilter === 'completed') ? 'selected' : ''; ?>>Completed</option>
-                                </select>
-                                <button type="submit" class="btn second-btn">Filter</button>
-                                <a href="driver-bookings.php" class="btn second-btn">Reset</a>
-                            </div>
-                        </form>
-                    </div>
+                    <form action="" method="GET" class="driver-filter-form driver-filter-form-compact">
+                        <select name="status">
+                            <option value="">All Booking Statuses</option>
+                            <option value="pending" <?php echo ($statusFilter === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                            <option value="confirmed" <?php echo ($statusFilter === 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
+                            <option value="rejected" <?php echo ($statusFilter === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                            <option value="cancelled" <?php echo ($statusFilter === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                            <option value="completed" <?php echo ($statusFilter === 'completed') ? 'selected' : ''; ?>>Completed</option>
+                        </select>
+                        <button type="submit" class="btn second-btn">Filter</button>
+                        <a href="driver-bookings.php" class="btn second-btn">Reset</a>
+                    </form>
 
                     <table>
                         <thead>
@@ -82,7 +78,8 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                                         <td><?php echo carzo_e($row['total']); ?></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span></td>
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
-                                        <td>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
                                             <?php if ($status === 'pending') { ?>
                                                 <a href="includes/driver-booking-process.php?action=confirm&booking_id=<?php echo $row['booking_id']; ?>" class="edit-badge" title="Confirm"><i class="ri-check-fill"></i></a>
                                                 <a href="includes/driver-booking-process.php?action=reject&booking_id=<?php echo $row['booking_id']; ?>" class="del-badge" title="Reject"><i class="ri-close-fill"></i></a>
@@ -91,6 +88,7 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                                             <?php } else { ?>
                                                 <span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span>
                                             <?php } ?>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php }

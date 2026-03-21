@@ -79,9 +79,11 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                                         <td><span class="<?php echo carzo_e(carzo_badge_class($row['maintenance_status'])); ?>"><?php echo carzo_e(ucfirst($row['maintenance_status'])); ?></span></td>
                                         <td><?php echo carzo_e($row['price']); ?></td>
                                         <td><?php echo carzo_e($row['location']); ?></td>
-                                        <td>
-                                            <a href="driver-vehicle-edit.php?vehicle_id=<?php echo $row['vehicle_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
-                                            <a href="includes/driver-vehicle-process.php?deleteVehicle=<?php echo $row['vehicle_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                        <td class="action-cell">
+                                            <div class="table-actions">
+                                                <a href="driver-vehicle-edit.php?vehicle_id=<?php echo $row['vehicle_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
+                                                <a href="includes/driver-vehicle-process.php?deleteVehicle=<?php echo $row['vehicle_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php }

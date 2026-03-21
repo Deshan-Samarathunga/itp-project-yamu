@@ -49,7 +49,7 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo carzo_e($row['complainant_name']); ?></td>
                                     <td><?php echo carzo_e($row['subject']); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
-                                    <td><a href="driver-dispute-view.php?complaint_id=<?php echo (int) $row['complaint_id']; ?>" class="Status-active-badge">View</a></td>
+                                    <td class="action-cell"><div class="table-actions"><a href="driver-dispute-view.php?complaint_id=<?php echo (int) $row['complaint_id']; ?>" class="Status-active-badge">View</a></div></td>
                                 </tr>
                             <?php }
                         } else { ?>

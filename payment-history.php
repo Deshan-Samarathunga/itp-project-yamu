@@ -50,7 +50,7 @@ $result = mysqli_query($conn, $sql);
                                     <td><?php echo carzo_money($row['discount_amount']); ?></td>
                                     <td><?php echo carzo_money($row['final_amount']); ?></td>
                                     <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
-                                    <td><a href="invoice.php?payment_id=<?php echo (int) $row['payment_id']; ?>" class="Status-active-badge">View</a></td>
+                                    <td class="action-cell"><div class="table-actions"><a href="invoice.php?payment_id=<?php echo (int) $row['payment_id']; ?>" class="Status-active-badge">View</a></div></td>
                                 </tr>
                             <?php }
                         } else { ?>

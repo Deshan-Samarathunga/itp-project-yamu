@@ -1373,18 +1373,37 @@ table tbody tr:hover {
 }
 
 /* Status badges */
+.action-cell {
+    width: 1%;
+    min-width: 150px;
+    white-space: nowrap;
+}
+
+.table-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: max-content;
+}
+
 .Status-active-badge,
 .Status-conpleted-badge,
 .Status-pending-badge, 
 .Status-cancelled-badge,
 .Status-inactive-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
     padding: 8px 9px;
+    min-height: 32px;
     border-radius: 8px;
     text-align: center;
+    line-height: 1;
+    text-decoration: none;
 }
 
 .Status-active-badge {
@@ -1405,6 +1424,43 @@ table tbody tr:hover {
 }
 .Status-inactive-badge {
     background: #fa5151;
+    color: #FFF;
+}
+
+.edit-badge,
+.del-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 18px;
+    line-height: 1;
+    text-decoration: none;
+    box-sizing: border-box;
+    vertical-align: middle;
+    transition: 0.3s ease-in-out;
+}
+
+.edit-badge {
+    background-color: rgba(0, 255, 10, 0.16);
+    color: #4caf50;
+}
+
+.edit-badge:hover {
+    background-color: #4caf50;
+    color: #FFF;
+}
+
+.del-badge {
+    background-color: rgba(255, 68, 0, 0.16);
+    color: #fa6c39;
+}
+
+.del-badge:hover {
+    background-color: #fa6c39;
     color: #FFF;
 }
 
@@ -1437,11 +1493,29 @@ table tbody tr:hover {
 .driver-filter-form input,
 .driver-filter-form select {
     min-height: 48px;
+    height: 48px;
     padding: 12px 14px;
     border: 1px solid #dddcdc;
     border-radius: 6px;
     font-size: 15px;
     flex: 1 1 180px;
+    box-sizing: border-box;
+}
+
+.manage-filter-form .btn,
+.driver-filter-form .btn {
+    min-height: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+.driver-filter-form.driver-filter-form-compact select {
+    flex: 0 0 220px;
+    max-width: 220px;
 }
 
 .table-action-links {

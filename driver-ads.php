@@ -107,12 +107,14 @@ $result = mysqli_query($conn, $sql);
                                             <td><span class="<?php echo carzo_e(carzo_badge_class($ad['availability_status'])); ?>"><?php echo carzo_e(ucwords(str_replace('_', ' ', $ad['availability_status']))); ?></span></td>
                                             <td><span class="<?php echo carzo_e(carzo_badge_class($ad['advertisement_status'])); ?>"><?php echo carzo_e(ucfirst($ad['advertisement_status'])); ?></span></td>
                                             <td><?php echo carzo_e($ad['updated_at'] ?: $ad['created_at']); ?></td>
-                                            <td class="table-action-links">
-                                                <a href="driver-ad-edit.php?ad_id=<?php echo (int) $ad['driver_ad_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
-                                                <?php if (($ad['advertisement_status'] ?? '') === 'active') { ?>
-                                                    <a href="driver-details.php?ad_id=<?php echo (int) $ad['driver_ad_id']; ?>" class="edit-badge" title="View"><i class="ri-eye-line"></i></a>
-                                                <?php } ?>
-                                                <a href="includes/driver-ad-process.php?deleteAd=<?php echo (int) $ad['driver_ad_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                            <td class="action-cell">
+                                                <div class="table-actions">
+                                                    <a href="driver-ad-edit.php?ad_id=<?php echo (int) $ad['driver_ad_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>
+                                                    <?php if (($ad['advertisement_status'] ?? '') === 'active') { ?>
+                                                        <a href="driver-details.php?ad_id=<?php echo (int) $ad['driver_ad_id']; ?>" class="edit-badge" title="View"><i class="ri-eye-line"></i></a>
+                                                    <?php } ?>
+                                                    <a href="includes/driver-ad-process.php?deleteAd=<?php echo (int) $ad['driver_ad_id']; ?>" class="del-badge" title="Delete"><i class="ri-delete-bin-7-fill"></i></a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php }
