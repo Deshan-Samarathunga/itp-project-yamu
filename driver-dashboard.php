@@ -3,19 +3,21 @@
     carzo_start_session();
     carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
     include 'includes/config.php';
-    $page_title = "Driver Dashboard";
+    $page_title = 'Driver Dashboard';
     $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
 
-    $vehicleStatsResult = mysqli_query(
+    $adStatsResult = mysqli_query(
         $conn,
-        "SELECT COUNT(*) AS total_listings,
-                SUM(listing_status = 'pending') AS pending_approvals,
-                SUM(listing_status = 'approved') AS approved_listings,
-                SUM(availability_status = 'booked') AS booked_listings
-         FROM vehicles
-         WHERE owner_user_id = {$driverId}"
+        "SELECT COUNT(*) AS total_ads,
+                SUM(advertisement_status = 'active') AS published_ads,
+                SUM(advertisement_status = 'paused') AS paused_ads,
+                SUM(advertisement_status = 'draft') AS draft_ads,
+                SUM(availability_status = 'available') AS available_ads,
+                SUM(availability_status = 'on_request') AS on_request_ads
+         FROM driver_ads
+         WHERE driver_user_id = {$driverId}"
     );
-    $vehicleStats = $vehicleStatsResult ? mysqli_fetch_assoc($vehicleStatsResult) : [];
+    $adStats = $adStatsResult ? mysqli_fetch_assoc($adStatsResult) : [];
 
     $bookingStatsResult = mysqli_query(
         $conn,
@@ -32,7 +34,8 @@
         $conn,
         "SELECT COUNT(*) AS total_reviews,
                 SUM(status = 'visible') AS visible_reviews,
-                SUM(status = 'pending') AS pending_reviews
+                SUM(status = 'pending') AS pending_reviews,
+                COALESCE(AVG(CASE WHEN status = 'visible' THEN rating END), 0) AS average_rating
          FROM reviews
          WHERE driver_id = {$driverId}"
     );
@@ -42,9 +45,10 @@
         $conn,
         "SELECT COUNT(*) AS total_disputes,
                 SUM(status IN ('open', 'under_review')) AS active_disputes
-         FROM complaints
-         WHERE target_user_id = {$driverId}
-            OR target_vehicle_id IN (SELECT vehicle_id FROM vehicles WHERE owner_user_id = {$driverId})"
+         FROM complaints c
+         LEFT JOIN vehicles owned_vehicle ON owned_vehicle.vehicle_id = c.target_vehicle_id
+         WHERE c.target_user_id = {$driverId}
+            OR owned_vehicle.owner_user_id = {$driverId}"
     );
     $disputeStats = $disputeStatsResult ? mysqli_fetch_assoc($disputeStatsResult) : [];
 
@@ -84,20 +88,28 @@
                 <div class="profile-details card">
                     <h3>Driver Dashboard</h3>
                     <div class="form-group">
-                        <label>Total Listings:</label>
-                        <input type="text" value="<?php echo (int) ($vehicleStats['total_listings'] ?? 0); ?>" readonly />
+                        <label>Total Tour Ads:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['total_ads'] ?? 0); ?>" readonly />
                     </div>
                     <div class="form-group">
-                        <label>Pending Listing Approvals:</label>
-                        <input type="text" value="<?php echo (int) ($vehicleStats['pending_approvals'] ?? 0); ?>" readonly />
+                        <label>Published Ads:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['published_ads'] ?? 0); ?>" readonly />
                     </div>
                     <div class="form-group">
-                        <label>Approved Listings:</label>
-                        <input type="text" value="<?php echo (int) ($vehicleStats['approved_listings'] ?? 0); ?>" readonly />
+                        <label>Paused Ads:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['paused_ads'] ?? 0); ?>" readonly />
                     </div>
                     <div class="form-group">
-                        <label>Booked Vehicles:</label>
-                        <input type="text" value="<?php echo (int) ($vehicleStats['booked_listings'] ?? 0); ?>" readonly />
+                        <label>Draft Ads:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['draft_ads'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Available for Tours:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['available_ads'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>On-Request Ads:</label>
+                        <input type="text" value="<?php echo (int) ($adStats['on_request_ads'] ?? 0); ?>" readonly />
                     </div>
                     <div class="form-group">
                         <label>Total Booking Requests:</label>
@@ -114,6 +126,10 @@
                     <div class="form-group">
                         <label>Completed Bookings:</label>
                         <input type="text" value="<?php echo (int) ($bookingStats['completed_bookings'] ?? 0); ?>" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Average Rating:</label>
+                        <input type="text" value="<?php echo number_format((float) ($reviewStats['average_rating'] ?? 0), 1); ?> / 5" readonly />
                     </div>
                     <div class="form-group">
                         <label>Total Reviews:</label>
@@ -164,7 +180,7 @@
                         <textarea readonly><?php echo $_SESSION['user']['bio'] ?></textarea>
                     </div>
                     <p>
-                        Use the driver menu to manage your own listings, monitor approvals, and respond to booking requests from one place.
+                        Use the driver menu to publish your tour driver ads, keep your traveler-facing profile updated, and manage bookings from one place.
                     </p>
                 </div>
             </div>
