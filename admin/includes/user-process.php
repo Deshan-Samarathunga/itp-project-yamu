@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 carzo_start_session();
 carzo_require_admin('../index.php', '../access-denied.php');
 include 'config.php';
+carzo_ensure_users_password_column($conn);
 
 function carzo_admin_avatar_upload($currentAvatar = 'avatar.png')
 {

@@ -4,6 +4,8 @@ carzo_start_session();
 include 'config.php';
 
 if (isset($_POST['resetPassword'])) {
+    carzo_ensure_users_password_column($conn);
+
     $token = trim((string) ($_POST['token'] ?? ''));
     $newPassword = (string) ($_POST['new_password'] ?? '');
     $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
