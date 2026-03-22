@@ -37,20 +37,7 @@
                         <i class="ri-arrow-right-s-line" id="down-icon"></i>
                     </div>
                     <ul class="dropdown-list">
-                        <li><a href="vehicle.php">All Vehicless</a></li>
-                        <li><a href="vehicle-add.php">Post a Vehicle</a></li>
-                    </ul>
-                </li>
-                <li class="sidenav-item">
-                    <div class="nav-links dropdown <?php if ($page_title === 'Booking') echo 'active'; ?>">
-                        <i class="ri-bookmark-line"></i>
-                        Booking
-                        <i class="ri-arrow-right-s-line" id="down-icon"></i>
-                    </div>
-                    <ul class="dropdown-list">
-                        <li><a href="bookings.php">All Bookings</a></li>
-                        <li><a href="bookings.php?status=confirmed">Confirmed</a></li>
-                        <li><a href="bookings.php?status=cancelled">Canceled</a></li>
+                        <li><a href="vehicle.php">All Vehicles</a></li>
                     </ul>
                 </li>
                 <li class="sidenav-item">
