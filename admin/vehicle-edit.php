@@ -14,7 +14,29 @@
     }
 
     $brandResult = mysqli_query($conn, "SELECT * FROM brands WHERE brand_status = 1 ORDER BY brand_name ASC");
-    $ownerResult = mysqli_query($conn, "SELECT user_id, full_name, email, role FROM users WHERE role IN ('admin','staff','driver') AND account_status IN ('active','pending') ORDER BY role, full_name ASC");
+    if (yamu_table_exists($conn, 'user_roles')) {
+        $ownerResult = mysqli_query(
+            $conn,
+            "SELECT DISTINCT u.user_id, u.full_name, u.email, 'staff' AS role
+             FROM users u
+             INNER JOIN user_roles ur
+                 ON ur.user_id = u.user_id
+                AND ur.role_key = 'staff'
+             WHERE ur.role_status IN ('active', 'verified')
+               AND ur.verification_status IN ('approved', 'verified')
+               AND u.account_status IN ('active', 'verified')
+             ORDER BY u.full_name ASC"
+        );
+    } else {
+        $ownerResult = mysqli_query(
+            $conn,
+            "SELECT user_id, full_name, email, role
+             FROM users
+             WHERE role = 'staff'
+               AND account_status IN ('active', 'verified')
+             ORDER BY full_name ASC"
+        );
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,6 +61,9 @@
                         <div class="form-group">
                             <label for="owner_user_id">Owner:</label>
                             <select name="owner_user_id" id="owner_user_id" required>
+                                <?php if (!$ownerResult || mysqli_num_rows($ownerResult) === 0) { ?>
+                                    <option value="">No approved staff accounts available</option>
+                                <?php } ?>
                                 <?php while ($ownerResult && $owner = mysqli_fetch_assoc($ownerResult)) { ?>
                                     <option value="<?php echo $owner['user_id']; ?>" <?php echo ((int) $vehicle['owner_user_id'] === (int) $owner['user_id']) ? 'selected' : ''; ?>>
                                         <?php echo yamu_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>

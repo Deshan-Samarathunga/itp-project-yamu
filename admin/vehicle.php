@@ -57,6 +57,7 @@ $result = mysqli_query($conn, $sql);
         <main class="main">
             <?php include('../includes/alert.php'); ?>
             <h2>Manage Vehicles</h2>
+            <p>Vehicle listings belong to staff rental accounts. Admins review, edit, and moderate them here.</p>
 
             <div class="main-overview">
                 <div class="overviewcard">
@@ -111,10 +112,11 @@ $result = mysqli_query($conn, $sql);
                     <h3>Listed Vehicles</h3>
                     <div class="card-title">
                         <div class="search-box">
-                            <input type="text" id="myInput" onkeyup="seacrFunction()" placeholder="Search vehicle...">
+                            <input type="text" id="vehicleSearchInput" placeholder="Search vehicle..." value="<?php echo yamu_e((string) ($_GET['search'] ?? '')); ?>">
                         </div>
-                        <form action="" method="GET">
-                            <select name="listing_status" style="width: 170px;">
+                        <form action="vehicle.php" method="GET" id="vehicleFilterForm">
+                            <input type="hidden" name="search" id="vehicleSearchField" value="<?php echo yamu_e((string) ($_GET['search'] ?? '')); ?>">
+                            <select name="listing_status" id="listingStatusFilter" style="width: 170px;">
                                 <option value="">All Listings</option>
                                 <?php foreach ($allowedListingStatuses as $allowedListingStatus) { ?>
                                     <option value="<?php echo yamu_e($allowedListingStatus); ?>" <?php echo ($listingFilter === $allowedListingStatus) ? 'selected' : ''; ?>>
@@ -122,7 +124,7 @@ $result = mysqli_query($conn, $sql);
                                     </option>
                                 <?php } ?>
                             </select>
-                            <select name="availability_status" style="width: 170px;">
+                            <select name="availability_status" id="availabilityStatusFilter" style="width: 170px;">
                                 <option value="">All Availability</option>
                                 <?php foreach ($allowedAvailabilityStatuses as $allowedAvailabilityStatus) { ?>
                                     <option value="<?php echo yamu_e($allowedAvailabilityStatus); ?>" <?php echo ($availabilityFilter === $allowedAvailabilityStatus) ? 'selected' : ''; ?>>
@@ -130,7 +132,7 @@ $result = mysqli_query($conn, $sql);
                                     </option>
                                 <?php } ?>
                             </select>
-                            <select name="maintenance_status" style="width: 190px;">
+                            <select name="maintenance_status" id="maintenanceStatusFilter" style="width: 190px;">
                                 <option value="">All Maintenance</option>
                                 <?php foreach ($allowedMaintenanceStatuses as $allowedMaintenanceStatus) { ?>
                                     <option value="<?php echo yamu_e($allowedMaintenanceStatus); ?>" <?php echo ($maintenanceFilter === $allowedMaintenanceStatus) ? 'selected' : ''; ?>>
@@ -140,7 +142,6 @@ $result = mysqli_query($conn, $sql);
                             </select>
                             <button type="submit" class="btn second-btn">Filter</button>
                             <a href="vehicle.php" class="btn second-btn">Reset</a>
-                            <a href="vehicle-add.php" class="btn main-btn">Add New +</a>
                         </form>
                     </div>
                     <div class="table-wrap">
@@ -158,10 +159,18 @@ $result = mysqli_query($conn, $sql);
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody class="table-body">
+                        <tbody class="table-body" id="vehicleTableBody">
                             <?php if ($result && mysqli_num_rows($result) > 0) {
                                 while ($row = mysqli_fetch_assoc($result)) { ?>
-                                    <tr>
+                                    <tr
+                                        data-vehicle-title="<?php echo yamu_e(strtolower((string) $row['vehicle_title'])); ?>"
+                                        data-registration-number="<?php echo yamu_e(strtolower((string) $row['registration_number'])); ?>"
+                                        data-vehicle-brand="<?php echo yamu_e(strtolower((string) $row['vehicle_brand'])); ?>"
+                                        data-owner-name="<?php echo yamu_e(strtolower((string) $row['owner_name'])); ?>"
+                                        data-listing-status="<?php echo yamu_e(strtolower((string) $row['listing_status'])); ?>"
+                                        data-availability-status="<?php echo yamu_e(strtolower((string) $row['availability_status'])); ?>"
+                                        data-maintenance-status="<?php echo yamu_e(strtolower((string) $row['maintenance_status'])); ?>"
+                                    >
                                         <td><?php echo (int) $row['vehicle_id']; ?></td>
                                         <td class="image-cell"><img src="assets/images/uploads/vehicles/<?php echo yamu_e($row['vImg1']); ?>" alt="vehicle" class="table-thumb table-thumb--lg"></td>
                                         <td>
@@ -189,6 +198,9 @@ $result = mysqli_query($conn, $sql);
                                     <td colspan="9">No vehicles found.</td>
                                 </tr>
                             <?php } ?>
+                            <tr id="vehicleFilterEmptyRow" style="display: none;">
+                                <td colspan="9">No vehicles match the current filters.</td>
+                            </tr>
                         </tbody>
                     </table>
                     </div>
@@ -204,21 +216,70 @@ $result = mysqli_query($conn, $sql);
 
     <script src="assets/js/main.js"></script>
     <script>
-        function seacrFunction() {
-            var input = document.getElementById("myInput");
-            var filter = input.value.toUpperCase();
-            var table = document.getElementById("table");
-            var tr = table.getElementsByTagName("tr");
+        (function () {
+            var searchInput = document.getElementById("vehicleSearchInput");
+            var searchField = document.getElementById("vehicleSearchField");
+            var listingFilter = document.getElementById("listingStatusFilter");
+            var availabilityFilter = document.getElementById("availabilityStatusFilter");
+            var maintenanceFilter = document.getElementById("maintenanceStatusFilter");
+            var tableBody = document.getElementById("vehicleTableBody");
+            var emptyRow = document.getElementById("vehicleFilterEmptyRow");
 
-            for (var i = 0; i < tr.length; i++) {
-                var td = tr[i].getElementsByTagName("td")[2];
+            if (!tableBody) {
+                return;
+            }
 
-                if (td) {
-                    var txtValue = td.textContent || td.innerText;
-                    tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            var rows = tableBody.querySelectorAll("tr[data-listing-status]");
+
+            function applyVehicleFilters() {
+                var searchValue = (searchInput ? searchInput.value : "").toLowerCase().trim();
+                var listingValue = (listingFilter ? listingFilter.value : "").toLowerCase().trim();
+                var availabilityValue = (availabilityFilter ? availabilityFilter.value : "").toLowerCase().trim();
+                var maintenanceValue = (maintenanceFilter ? maintenanceFilter.value : "").toLowerCase().trim();
+                var visibleCount = 0;
+
+                if (searchField) {
+                    searchField.value = searchValue;
+                }
+
+                rows.forEach(function (row) {
+                    var haystack = [
+                        row.dataset.vehicleTitle || "",
+                        row.dataset.registrationNumber || "",
+                        row.dataset.vehicleBrand || "",
+                        row.dataset.ownerName || ""
+                    ].join(" ");
+
+                    var matchesSearch = !searchValue || haystack.indexOf(searchValue) !== -1;
+                    var matchesListing = !listingValue || row.dataset.listingStatus === listingValue;
+                    var matchesAvailability = !availabilityValue || row.dataset.availabilityStatus === availabilityValue;
+                    var matchesMaintenance = !maintenanceValue || row.dataset.maintenanceStatus === maintenanceValue;
+                    var matches = matchesSearch && matchesListing && matchesAvailability && matchesMaintenance;
+
+                    row.style.display = matches ? "" : "none";
+
+                    if (matches) {
+                        visibleCount++;
+                    }
+                });
+
+                if (emptyRow) {
+                    emptyRow.style.display = visibleCount === 0 ? "" : "none";
                 }
             }
-        }
+
+            if (searchInput) {
+                searchInput.addEventListener("input", applyVehicleFilters);
+            }
+
+            [listingFilter, availabilityFilter, maintenanceFilter].forEach(function (filter) {
+                if (filter) {
+                    filter.addEventListener("change", applyVehicleFilters);
+                }
+            });
+
+            applyVehicleFilters();
+        }());
     </script>
 </body>
 </html>

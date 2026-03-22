@@ -34,9 +34,9 @@ yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'acces
     $reviewStatsResult = mysqli_query(
         $conn,
         "SELECT COUNT(*) AS total_reviews,
-                SUM(status = 'visible') AS visible_reviews,
-                SUM(status = 'pending') AS pending_reviews,
-                COALESCE(AVG(CASE WHEN status = 'visible' THEN rating END), 0) AS average_rating
+                SUM(r.status = 'visible') AS visible_reviews,
+                SUM(r.status = 'pending') AS pending_reviews,
+                COALESCE(AVG(CASE WHEN r.status = 'visible' THEN r.rating END), 0) AS average_rating
          FROM reviews r
          LEFT JOIN booking b ON b.booking_id = r.booking_id
          WHERE r.driver_id = {$driverId}
@@ -47,7 +47,7 @@ yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'acces
     $disputeStatsResult = mysqli_query(
         $conn,
         "SELECT COUNT(*) AS total_disputes,
-                SUM(status IN ('open', 'under_review')) AS active_disputes
+                SUM(c.status IN ('open', 'under_review')) AS active_disputes
          FROM complaints c
          LEFT JOIN booking b ON b.booking_id = c.booking_id
          WHERE c.target_user_id = {$driverId}
