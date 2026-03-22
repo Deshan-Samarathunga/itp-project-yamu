@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 include 'includes/config.php';
 $page_title = "Vehicles";
 
@@ -29,15 +29,15 @@ $sql = "SELECT v.*, u.full_name AS owner_name, u.email AS owner_email, u.role AS
         WHERE 1 = 1";
 
 if (in_array($listingFilter, $allowedListingStatuses, true)) {
-    $sql .= " AND v.listing_status = '" . carzo_escape($conn, $listingFilter) . "'";
+    $sql .= " AND v.listing_status = '" . yamu_escape($conn, $listingFilter) . "'";
 }
 
 if (in_array($availabilityFilter, $allowedAvailabilityStatuses, true)) {
-    $sql .= " AND v.availability_status = '" . carzo_escape($conn, $availabilityFilter) . "'";
+    $sql .= " AND v.availability_status = '" . yamu_escape($conn, $availabilityFilter) . "'";
 }
 
 if (in_array($maintenanceFilter, $allowedMaintenanceStatuses, true)) {
-    $sql .= " AND v.maintenance_status = '" . carzo_escape($conn, $maintenanceFilter) . "'";
+    $sql .= " AND v.maintenance_status = '" . yamu_escape($conn, $maintenanceFilter) . "'";
 }
 
 $sql .= " ORDER BY COALESCE(v.updated_at, v.reg_date) DESC, v.vehicle_id DESC";
@@ -117,24 +117,24 @@ $result = mysqli_query($conn, $sql);
                             <select name="listing_status" style="width: 170px;">
                                 <option value="">All Listings</option>
                                 <?php foreach ($allowedListingStatuses as $allowedListingStatus) { ?>
-                                    <option value="<?php echo carzo_e($allowedListingStatus); ?>" <?php echo ($listingFilter === $allowedListingStatus) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($allowedListingStatus)); ?>
+                                    <option value="<?php echo yamu_e($allowedListingStatus); ?>" <?php echo ($listingFilter === $allowedListingStatus) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($allowedListingStatus)); ?>
                                     </option>
                                 <?php } ?>
                             </select>
                             <select name="availability_status" style="width: 170px;">
                                 <option value="">All Availability</option>
                                 <?php foreach ($allowedAvailabilityStatuses as $allowedAvailabilityStatus) { ?>
-                                    <option value="<?php echo carzo_e($allowedAvailabilityStatus); ?>" <?php echo ($availabilityFilter === $allowedAvailabilityStatus) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($allowedAvailabilityStatus)); ?>
+                                    <option value="<?php echo yamu_e($allowedAvailabilityStatus); ?>" <?php echo ($availabilityFilter === $allowedAvailabilityStatus) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($allowedAvailabilityStatus)); ?>
                                     </option>
                                 <?php } ?>
                             </select>
                             <select name="maintenance_status" style="width: 190px;">
                                 <option value="">All Maintenance</option>
                                 <?php foreach ($allowedMaintenanceStatuses as $allowedMaintenanceStatus) { ?>
-                                    <option value="<?php echo carzo_e($allowedMaintenanceStatus); ?>" <?php echo ($maintenanceFilter === $allowedMaintenanceStatus) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($allowedMaintenanceStatus)); ?>
+                                    <option value="<?php echo yamu_e($allowedMaintenanceStatus); ?>" <?php echo ($maintenanceFilter === $allowedMaintenanceStatus) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($allowedMaintenanceStatus)); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -163,19 +163,19 @@ $result = mysqli_query($conn, $sql);
                                 while ($row = mysqli_fetch_assoc($result)) { ?>
                                     <tr>
                                         <td><?php echo (int) $row['vehicle_id']; ?></td>
-                                        <td class="image-cell"><img src="assets/images/uploads/vehicles/<?php echo carzo_e($row['vImg1']); ?>" alt="vehicle" class="table-thumb table-thumb--lg"></td>
+                                        <td class="image-cell"><img src="assets/images/uploads/vehicles/<?php echo yamu_e($row['vImg1']); ?>" alt="vehicle" class="table-thumb table-thumb--lg"></td>
                                         <td>
-                                            <?php echo carzo_e($row['vehicle_title']); ?><br>
-                                            <small><?php echo carzo_e($row['vehicle_brand']); ?> | <?php echo carzo_e($row['registration_number']); ?></small>
+                                            <?php echo yamu_e($row['vehicle_title']); ?><br>
+                                            <small><?php echo yamu_e($row['vehicle_brand']); ?> | <?php echo yamu_e($row['registration_number']); ?></small>
                                         </td>
                                         <td>
-                                            <?php echo carzo_e($row['owner_name']); ?><br>
-                                            <small><?php echo carzo_e(ucfirst($row['owner_role'])); ?> | <?php echo carzo_e($row['owner_email']); ?></small>
+                                            <?php echo yamu_e($row['owner_name']); ?><br>
+                                            <small><?php echo yamu_e(ucfirst($row['owner_role'])); ?> | <?php echo yamu_e($row['owner_email']); ?></small>
                                         </td>
-                                        <td><?php echo carzo_e($row['price']); ?></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($row['availability_status'])); ?>"><?php echo carzo_e(ucfirst($row['availability_status'])); ?></span></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($row['listing_status'])); ?>"><?php echo carzo_e(ucfirst($row['listing_status'])); ?></span></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($row['maintenance_status'])); ?>"><?php echo carzo_e(ucfirst($row['maintenance_status'])); ?></span></td>
+                                        <td><?php echo yamu_e($row['price']); ?></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($row['availability_status'])); ?>"><?php echo yamu_e(ucfirst($row['availability_status'])); ?></span></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($row['listing_status'])); ?>"><?php echo yamu_e(ucfirst($row['listing_status'])); ?></span></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($row['maintenance_status'])); ?>"><?php echo yamu_e(ucfirst($row['maintenance_status'])); ?></span></td>
                                         <td class="action-cell">
                                             <div class="table-actions">
                                             <a href="vehicle-edit.php?vehicle_id=<?php echo (int) $row['vehicle_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>

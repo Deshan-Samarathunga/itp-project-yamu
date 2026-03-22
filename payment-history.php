@@ -1,12 +1,12 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
-carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
+yamu_start_session();
+yamu_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "Payment History";
 include 'includes/config.php';
 
 $customerId = (int) ($_SESSION['user']['user_ID'] ?? 0);
-$sql = "SELECT p.*, b.booking_No, v.vehicle_title
+$sql = "SELECT p.*, b.booking_No, COALESCE(v.vehicle_title, 'Driver Service') AS service_name
         FROM payments p
         LEFT JOIN booking b ON b.booking_id = p.booking_id
         LEFT JOIN vehicles v ON v.vehicle_id = b.vehicle_ID
@@ -30,7 +30,7 @@ $result = mysqli_query($conn, $sql);
                     <thead>
                         <tr>
                             <th>Booking No.</th>
-                            <th>Vehicle</th>
+                            <th>Service</th>
                             <th>Method</th>
                             <th>Amount</th>
                             <th>Discount</th>
@@ -43,13 +43,13 @@ $result = mysqli_query($conn, $sql);
                         <?php if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['booking_No']); ?></td>
-                                    <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                    <td><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['payment_method']))); ?></td>
-                                    <td><?php echo carzo_money($row['amount']); ?></td>
-                                    <td><?php echo carzo_money($row['discount_amount']); ?></td>
-                                    <td><?php echo carzo_money($row['final_amount']); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
+                                    <td><?php echo yamu_e($row['booking_No']); ?></td>
+                                    <td><?php echo yamu_e($row['service_name']); ?></td>
+                                    <td><?php echo yamu_e(ucfirst(str_replace('_', ' ', $row['payment_method']))); ?></td>
+                                    <td><?php echo yamu_money($row['amount']); ?></td>
+                                    <td><?php echo yamu_money($row['discount_amount']); ?></td>
+                                    <td><?php echo yamu_money($row['final_amount']); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['payment_status'])); ?>"><?php echo yamu_e(ucfirst($row['payment_status'])); ?></span></td>
                                     <td class="action-cell"><div class="table-actions"><a href="invoice.php?payment_id=<?php echo (int) $row['payment_id']; ?>" class="Status-active-badge">View</a></div></td>
                                 </tr>
                             <?php }

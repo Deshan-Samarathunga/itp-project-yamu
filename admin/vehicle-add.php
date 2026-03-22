@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     $page_title = "Vehicles-add"; 
     include 'includes/config.php';
     $brandResult = mysqli_query($conn, "SELECT * FROM brands WHERE brand_status = 1 ORDER BY brand_name ASC");
@@ -32,7 +32,7 @@
                                 <option value="">--Select Owner--</option>
                                 <?php while ($ownerResult && $owner = mysqli_fetch_assoc($ownerResult)) { ?>
                                     <option value="<?php echo $owner['user_id']; ?>">
-                                        <?php echo carzo_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>
+                                        <?php echo yamu_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -50,7 +50,7 @@
                             <select name="vehicleBrand" id="vehicleBrand" required>
                                 <option value="">--Select a Brand--</option>
                                 <?php while ($brandResult && $brand = mysqli_fetch_assoc($brandResult)) { ?>
-                                    <option value="<?php echo carzo_e($brand['brand_name']); ?>"><?php echo carzo_e($brand['brand_name']); ?></option>
+                                    <option value="<?php echo yamu_e($brand['brand_name']); ?>"><?php echo yamu_e($brand['brand_name']); ?></option>
                                 <?php } ?>
                             </select>
                         </div>

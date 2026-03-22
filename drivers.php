@@ -1,41 +1,60 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/driver-ad-options.php';
-carzo_start_session();
+yamu_start_session();
 include 'includes/config.php';
 $page_title = 'Explore Drivers';
-$serviceLocations = carzo_driver_service_locations();
+$serviceLocations = yamu_driver_service_locations();
+$hasUserRolesTable = yamu_table_exists($conn, 'user_roles');
+$driverRoleJoin = $hasUserRolesTable
+    ? "INNER JOIN user_roles ur_driver
+         ON ur_driver.user_id = u.user_id
+        AND ur_driver.role_key = 'driver'
+        AND ur_driver.role_status IN ('active', 'verified')
+        AND ur_driver.verification_status IN ('approved', 'verified')"
+    : '';
+$driverVisibilityWhere = $hasUserRolesTable
+    ? ''
+    : "AND u.role = 'driver'
+       AND u.account_status = 'active'
+       AND u.verification_status IN ('approved', 'verified')";
 
 $search = trim((string) ($_GET['search'] ?? ''));
 $location = trim((string) ($_GET['location'] ?? ''));
 $availabilityFilter = strtolower(trim((string) ($_GET['availability'] ?? '')));
 $allowedAvailabilityStatuses = ['available', 'busy', 'on_request'];
 
-$sql = "SELECT da.*, u.full_name, u.email, u.phone, u.city, u.profile_pic, u.bio, u.verification_status,
+$driverVerificationSelect = $hasUserRolesTable
+    ? 'ur_driver.verification_status AS driver_role_verification_status,'
+    : 'u.verification_status AS driver_role_verification_status,';
+
+$sql = "SELECT da.*, u.full_name, u.email, u.phone, u.city, u.profile_pic, u.bio, {$driverVerificationSelect}
                COALESCE(review_stats.review_count, 0) AS review_count,
                COALESCE(review_stats.avg_rating, 0) AS avg_rating,
                COALESCE(booking_stats.completed_trips, 0) AS completed_trips
         FROM driver_ads da
         INNER JOIN users u ON u.user_id = da.driver_user_id
+        {$driverRoleJoin}
         LEFT JOIN (
             SELECT driver_id, COUNT(*) AS review_count, AVG(rating) AS avg_rating
-            FROM reviews
-            WHERE status = 'visible'
+            FROM reviews r
+            LEFT JOIN booking b ON b.booking_id = r.booking_id
+            WHERE r.status = 'visible'
+              AND b.vehicle_ID IS NULL
             GROUP BY driver_id
         ) review_stats ON review_stats.driver_id = da.driver_user_id
         LEFT JOIN (
             SELECT driver_id, COUNT(*) AS completed_trips
             FROM booking
             WHERE booking_status = 'completed'
+              AND vehicle_ID IS NULL
             GROUP BY driver_id
         ) booking_stats ON booking_stats.driver_id = da.driver_user_id
-        WHERE u.role = 'driver'
-          AND u.account_status = 'active'
-          AND u.verification_status IN ('approved', 'verified')
-          AND da.advertisement_status = 'active'";
+        WHERE da.advertisement_status = 'active'
+          {$driverVisibilityWhere}";
 
 if ($search !== '') {
-    $safeSearch = carzo_escape($conn, $search);
+    $safeSearch = yamu_escape($conn, $search);
     $sql .= " AND (
         da.ad_title LIKE '%{$safeSearch}%'
         OR da.tagline LIKE '%{$safeSearch}%'
@@ -47,12 +66,12 @@ if ($search !== '') {
 }
 
 if ($location !== '') {
-    $safeLocation = carzo_escape($conn, $location);
+    $safeLocation = yamu_escape($conn, $location);
     $sql .= " AND (da.service_location LIKE '%{$safeLocation}%' OR u.city LIKE '%{$safeLocation}%')";
 }
 
 if (in_array($availabilityFilter, $allowedAvailabilityStatuses, true)) {
-    $sql .= " AND da.availability_status = '" . carzo_escape($conn, $availabilityFilter) . "'";
+    $sql .= " AND da.availability_status = '" . yamu_escape($conn, $availabilityFilter) . "'";
 }
 
 $sql .= " ORDER BY FIELD(da.availability_status, 'available', 'on_request', 'busy'), review_stats.avg_rating DESC, da.updated_at DESC, da.driver_ad_id DESC";
@@ -84,15 +103,15 @@ $result = mysqli_query($conn, $sql);
 
             <div class="driver-filter-bar">
                 <form action="" method="GET" class="driver-filter-form">
-                    <input type="text" name="search" value="<?php echo carzo_e($search); ?>" placeholder="Search by driver, tour style, language..." />
+                    <input type="text" name="search" value="<?php echo yamu_e($search); ?>" placeholder="Search by driver, tour style, language..." />
                     <select name="location">
                         <option value="">All Service Locations</option>
-                        <?php if ($location !== '' && !carzo_driver_service_location_exists($location)) { ?>
-                            <option value="<?php echo carzo_e($location); ?>" selected><?php echo carzo_e($location); ?></option>
+                        <?php if ($location !== '' && !yamu_driver_service_location_exists($location)) { ?>
+                            <option value="<?php echo yamu_e($location); ?>" selected><?php echo yamu_e($location); ?></option>
                         <?php } ?>
                         <?php foreach ($serviceLocations as $serviceLocation) { ?>
-                            <option value="<?php echo carzo_e($serviceLocation); ?>" <?php echo $location === $serviceLocation ? 'selected' : ''; ?>>
-                                <?php echo carzo_e($serviceLocation); ?>
+                            <option value="<?php echo yamu_e($serviceLocation); ?>" <?php echo $location === $serviceLocation ? 'selected' : ''; ?>>
+                                <?php echo yamu_e($serviceLocation); ?>
                             </option>
                         <?php } ?>
                     </select>
@@ -110,40 +129,40 @@ $result = mysqli_query($conn, $sql);
             <div class="grid-3">
                 <?php if ($result && mysqli_num_rows($result) > 0) {
                     while ($driver = mysqli_fetch_assoc($result)) {
-                        $avatar = carzo_profile_avatar_path($driver['profile_pic'] ?? 'avatar.png');
+                        $avatar = yamu_profile_avatar_path($driver['profile_pic'] ?? 'avatar.png');
                         $phoneHref = preg_replace('/[^0-9+]/', '', (string) ($driver['phone'] ?? ''));
                         ?>
                         <div class="card driver-card">
                             <div class="card-body">
                                 <div class="driver-card-top">
                                     <div class="driver-avatar">
-                                        <img src="<?php echo carzo_e($avatar); ?>" alt="<?php echo carzo_e($driver['full_name']); ?>">
+                                        <img src="<?php echo yamu_e($avatar); ?>" alt="<?php echo yamu_e($driver['full_name']); ?>">
                                     </div>
                                     <div class="driver-heading">
-                                        <h3><?php echo carzo_e($driver['full_name']); ?></h3>
-                                        <p><?php echo carzo_e($driver['ad_title']); ?></p>
+                                        <h3><?php echo yamu_e($driver['full_name']); ?></h3>
+                                        <p><?php echo yamu_e($driver['ad_title']); ?></p>
                                     </div>
                                 </div>
 
                                 <div class="driver-badge-row">
-                                    <span class="<?php echo carzo_e(carzo_badge_class($driver['availability_status'])); ?>"><?php echo carzo_e(ucwords(str_replace('_', ' ', $driver['availability_status']))); ?></span>
-                                    <span class="<?php echo carzo_e(carzo_badge_class($driver['verification_status'])); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $driver['verification_status']))); ?></span>
+                                    <span class="<?php echo yamu_e(yamu_badge_class($driver['availability_status'])); ?>"><?php echo yamu_e(ucwords(str_replace('_', ' ', $driver['availability_status']))); ?></span>
+                                    <span class="<?php echo yamu_e(yamu_badge_class($driver['driver_role_verification_status'])); ?>"><?php echo yamu_e(ucfirst(str_replace('_', ' ', $driver['driver_role_verification_status']))); ?></span>
                                 </div>
 
                                 <?php if (!empty($driver['tagline'])) { ?>
-                                    <p class="driver-tagline"><?php echo carzo_e($driver['tagline']); ?></p>
+                                    <p class="driver-tagline"><?php echo yamu_e($driver['tagline']); ?></p>
                                 <?php } ?>
 
                                 <div class="driver-meta-list">
-                                    <span><i class="ri-map-pin-line"></i> <?php echo carzo_e($driver['service_location']); ?></span>
-                                    <span><i class="ri-global-line"></i> <?php echo carzo_e($driver['languages']); ?></span>
+                                    <span><i class="ri-map-pin-line"></i> <?php echo yamu_e($driver['service_location']); ?></span>
+                                    <span><i class="ri-global-line"></i> <?php echo yamu_e($driver['languages']); ?></span>
                                     <span><i class="ri-time-line"></i> <?php echo (int) $driver['experience_years']; ?> years experience</span>
                                     <span><i class="ri-group-line"></i> Up to <?php echo (int) $driver['max_group_size']; ?> travelers</span>
                                 </div>
 
                                 <div class="driver-stats-row">
                                     <div class="driver-stat">
-                                        <strong>Rs. <?php echo carzo_money($driver['daily_rate']); ?></strong>
+                                        <strong>Rs. <?php echo yamu_money($driver['daily_rate']); ?></strong>
                                         <span>per day</span>
                                     </div>
                                     <div class="driver-stat">
@@ -156,14 +175,14 @@ $result = mysqli_query($conn, $sql);
                                     </div>
                                 </div>
 
-                                <p class="driver-summary"><?php echo carzo_e($driver['description']); ?></p>
+                                <p class="driver-summary"><?php echo yamu_e($driver['description']); ?></p>
 
                                 <div class="driver-card-actions">
                                     <a href="driver-details.php?ad_id=<?php echo (int) $driver['driver_ad_id']; ?>" class="btn main-btn">View Details</a>
                                     <?php if (!empty($phoneHref)) { ?>
-                                        <a href="tel:<?php echo carzo_e($phoneHref); ?>" class="btn second-btn">Call Driver</a>
+                                        <a href="tel:<?php echo yamu_e($phoneHref); ?>" class="btn second-btn">Call Driver</a>
                                     <?php } else { ?>
-                                        <a href="mailto:<?php echo carzo_e($driver['email']); ?>" class="btn second-btn">Email Driver</a>
+                                        <a href="mailto:<?php echo yamu_e($driver['email']); ?>" class="btn second-btn">Email Driver</a>
                                     <?php } ?>
                                 </div>
                             </div>

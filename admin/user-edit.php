@@ -1,16 +1,25 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     include 'includes/config.php';
     $page_title = "Users";
 
     $userId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
-    $user = carzo_fetch_user_by_id($conn, $userId);
+    $user = yamu_fetch_user_by_id($conn, $userId);
 
     if (!$user) {
-        carzo_redirect_with_message('users.php', 'error', 'User not found');
+        yamu_redirect_with_message('users.php', 'error', 'User not found');
     }
+
+    $assignments = yamu_fetch_user_roles(
+        $conn,
+        $userId,
+        $user['role'] ?? 'customer',
+        $user['account_status'] ?? 'active',
+        $user['verification_status'] ?? 'verified'
+    );
+    $isSeededAdminUser = isset($assignments['admin']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,15 +51,15 @@
                         <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>" />
                         <div class="form-group">
                             <label for="fullName">Full Name:</label>
-                            <input type="text" name="fullName" id="fullName" value="<?php echo carzo_e($user['full_name']); ?>" required />
+                            <input type="text" name="fullName" id="fullName" value="<?php echo yamu_e($user['full_name']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="email">Email Address:</label>
-                            <input type="email" name="email" id="email" value="<?php echo carzo_e($user['email']); ?>" required />
+                            <input type="email" name="email" id="email" value="<?php echo yamu_e($user['email']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="username">Username:</label>
-                            <input type="text" name="username" id="username" value="<?php echo carzo_e($user['username']); ?>" required />
+                            <input type="text" name="username" id="username" value="<?php echo yamu_e($user['username']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="password">New Password:</label>
@@ -58,12 +67,16 @@
                         </div>
                         <div class="form-group">
                             <label for="role">Role:</label>
-                            <select name="role" id="role" onchange="toggleDriverFields()">
-                                <option value="customer" <?php echo ($user['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
-                                <option value="driver" <?php echo ($user['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
-                                <option value="staff" <?php echo ($user['role'] === 'staff') ? 'selected' : ''; ?>>Staff</option>
-                                <option value="admin" <?php echo ($user['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
-                            </select>
+                            <?php if ($isSeededAdminUser) { ?>
+                                <input type="hidden" name="role" id="role" value="admin" />
+                                <input type="text" value="Admin (DB-seeded only)" readonly />
+                            <?php } else { ?>
+                                <select name="role" id="role" onchange="toggleDriverFields()">
+                                    <option value="customer" <?php echo ($user['role'] === 'customer') ? 'selected' : ''; ?>>Customer</option>
+                                    <option value="driver" <?php echo ($user['role'] === 'driver') ? 'selected' : ''; ?>>Driver</option>
+                                    <option value="staff" <?php echo ($user['role'] === 'staff') ? 'selected' : ''; ?>>Staff</option>
+                                </select>
+                            <?php } ?>
                         </div>
                         <div class="form-group">
                             <label for="account_status">Account Status:</label>
@@ -88,19 +101,19 @@
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number:</label>
-                            <input type="tel" name="phone" id="phone" value="<?php echo carzo_e($user['phone']); ?>" />
+                            <input type="tel" name="phone" id="phone" value="<?php echo yamu_e($user['phone']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="dob">Date of Birth:</label>
-                            <input type="date" name="dob" id="dob" value="<?php echo carzo_e($user['dob']); ?>" />
+                            <input type="date" name="dob" id="dob" value="<?php echo yamu_e($user['dob']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="city">City:</label>
-                            <input type="text" name="city" id="city" value="<?php echo carzo_e($user['city']); ?>" />
+                            <input type="text" name="city" id="city" value="<?php echo yamu_e($user['city']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="address">Address:</label>
-                            <textarea name="address" id="address"><?php echo carzo_e($user['address']); ?></textarea>
+                            <textarea name="address" id="address"><?php echo yamu_e($user['address']); ?></textarea>
                         </div>
                         <div class="form-group">
                             <label for="profileImage">Profile Image:</label>
@@ -109,11 +122,11 @@
                         <div id="driver-fields">
                             <div class="form-group">
                                 <label for="license_or_nic">License / NIC:</label>
-                                <input type="text" name="license_or_nic" id="license_or_nic" value="<?php echo carzo_e($user['license_or_nic']); ?>" />
+                                <input type="text" name="license_or_nic" id="license_or_nic" value="<?php echo yamu_e($user['license_or_nic']); ?>" />
                             </div>
                             <div class="form-group">
                                 <label for="bio">Driver Bio:</label>
-                                <textarea name="bio" id="bio"><?php echo carzo_e($user['bio']); ?></textarea>
+                                <textarea name="bio" id="bio"><?php echo yamu_e($user['bio']); ?></textarea>
                             </div>
                         </div>
                         <input type="reset" value="Cancel" class="btn second-btn" />
@@ -132,7 +145,8 @@
     <script src="assets/js/main.js"></script>
     <script>
         function toggleDriverFields() {
-            const role = document.getElementById("role").value;
+            const roleField = document.getElementById("role");
+            const role = roleField ? roleField.value : "customer";
             const driverFields = document.getElementById("driver-fields");
             const verificationRow = document.getElementById("verification-row");
             const licenseInput = document.getElementById("license_or_nic");

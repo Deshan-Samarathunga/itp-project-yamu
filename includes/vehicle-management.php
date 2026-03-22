@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-function carzo_vehicle_feature_columns()
+function yamu_vehicle_feature_columns()
 {
     return [
         'airConditioner' => 'airConditioner',
@@ -16,28 +16,28 @@ function carzo_vehicle_feature_columns()
     ];
 }
 
-function carzo_vehicle_normalize_listing_status($status)
+function yamu_vehicle_normalize_listing_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowed = ['pending', 'approved', 'rejected', 'inactive'];
     return in_array($status, $allowed, true) ? $status : 'pending';
 }
 
-function carzo_vehicle_normalize_availability_status($status)
+function yamu_vehicle_normalize_availability_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowed = ['available', 'booked', 'unavailable'];
     return in_array($status, $allowed, true) ? $status : 'available';
 }
 
-function carzo_vehicle_normalize_maintenance_status($status)
+function yamu_vehicle_normalize_maintenance_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowed = ['good', 'due soon', 'under maintenance', 'unavailable'];
     return in_array($status, $allowed, true) ? $status : 'good';
 }
 
-function carzo_vehicle_fetch($conn, $vehicleId)
+function yamu_vehicle_fetch($conn, $vehicleId)
 {
     $vehicleId = (int) $vehicleId;
     $sql = "SELECT * FROM vehicles WHERE vehicle_id = {$vehicleId} LIMIT 1";
@@ -50,7 +50,7 @@ function carzo_vehicle_fetch($conn, $vehicleId)
     return null;
 }
 
-function carzo_vehicle_store_image($fieldName, $existingFile = '')
+function yamu_vehicle_store_image($fieldName, $existingFile = '')
 {
     if (!isset($_FILES[$fieldName]) || empty($_FILES[$fieldName]['name'])) {
         return $existingFile;
@@ -76,29 +76,29 @@ function carzo_vehicle_store_image($fieldName, $existingFile = '')
     return $newName;
 }
 
-function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = 'driver', $existingVehicle = null)
+function yamu_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = 'driver', $existingVehicle = null)
 {
-    $vehicleTitle = carzo_escape($conn, $_POST['vehicleTitle'] ?? '');
-    $vehicleDesc = carzo_escape($conn, $_POST['vehicleDesc'] ?? '');
-    $vehicleBrand = carzo_escape($conn, $_POST['vehicleBrand'] ?? '');
-    $transmission = carzo_escape($conn, $_POST['transmission'] ?? '');
-    $fuelType = carzo_escape($conn, $_POST['fuelType'] ?? '');
+    $vehicleTitle = yamu_escape($conn, $_POST['vehicleTitle'] ?? '');
+    $vehicleDesc = yamu_escape($conn, $_POST['vehicleDesc'] ?? '');
+    $vehicleBrand = yamu_escape($conn, $_POST['vehicleBrand'] ?? '');
+    $transmission = yamu_escape($conn, $_POST['transmission'] ?? '');
+    $fuelType = yamu_escape($conn, $_POST['fuelType'] ?? '');
     $modelYear = (int) ($_POST['modelYear'] ?? 0);
-    $engineCap = carzo_escape($conn, $_POST['engineCap'] ?? '');
+    $engineCap = yamu_escape($conn, $_POST['engineCap'] ?? '');
     $capacity = (int) ($_POST['capacity'] ?? 0);
     $price = (float) ($_POST['price'] ?? 0);
-    $location = carzo_escape($conn, $_POST['location'] ?? '');
-    $registrationNumber = carzo_escape($conn, $_POST['registration_number'] ?? '');
-    $listingStatus = carzo_vehicle_normalize_listing_status($_POST['listing_status'] ?? ($existingVehicle['listing_status'] ?? (carzo_is_admin_panel_role($submittedByRole) ? 'approved' : 'pending')));
-    $availabilityStatus = carzo_vehicle_normalize_availability_status($_POST['availability_status'] ?? ($existingVehicle['availability_status'] ?? 'available'));
-    $maintenanceStatus = carzo_vehicle_normalize_maintenance_status($_POST['maintenance_status'] ?? ($existingVehicle['maintenance_status'] ?? 'good'));
+    $location = yamu_escape($conn, $_POST['location'] ?? '');
+    $registrationNumber = yamu_escape($conn, $_POST['registration_number'] ?? '');
+    $listingStatus = yamu_vehicle_normalize_listing_status($_POST['listing_status'] ?? ($existingVehicle['listing_status'] ?? (yamu_is_admin_panel_role($submittedByRole) ? 'approved' : 'pending')));
+    $availabilityStatus = yamu_vehicle_normalize_availability_status($_POST['availability_status'] ?? ($existingVehicle['availability_status'] ?? 'available'));
+    $maintenanceStatus = yamu_vehicle_normalize_maintenance_status($_POST['maintenance_status'] ?? ($existingVehicle['maintenance_status'] ?? 'good'));
     $serviceDate = trim((string) ($_POST['service_date'] ?? ''));
     $nextServiceDate = trim((string) ($_POST['next_service_date'] ?? ''));
-    $serviceNotes = carzo_escape($conn, $_POST['service_notes'] ?? '');
+    $serviceNotes = yamu_escape($conn, $_POST['service_notes'] ?? '');
     $serviceCost = trim((string) ($_POST['service_cost'] ?? ''));
     $serviceCost = $serviceCost === '' ? null : (float) $serviceCost;
 
-    if (!carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved') {
+    if (!yamu_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved') {
         $listingStatus = 'pending';
     }
 
@@ -118,7 +118,7 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
     ];
 
     foreach ($imageFields as $fieldName) {
-        $storedName = carzo_vehicle_store_image($fieldName, $existingImages[$fieldName]);
+        $storedName = yamu_vehicle_store_image($fieldName, $existingImages[$fieldName]);
 
         if ($storedName === false) {
             return [false, 'Failed to upload vehicle images'];
@@ -135,7 +135,7 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
 
     $features = [];
 
-    foreach (carzo_vehicle_feature_columns() as $columnName => $fieldName) {
+    foreach (yamu_vehicle_feature_columns() as $columnName => $fieldName) {
         $features[$columnName] = isset($_POST[$fieldName]) ? 1 : 0;
     }
 
@@ -159,23 +159,23 @@ function carzo_vehicle_collect_payload($conn, $ownerUserId, $submittedByRole = '
         'listing_status' => $listingStatus,
         'availability_status' => $availabilityStatus,
         'maintenance_status' => $maintenanceStatus,
-        'service_date' => $serviceDate !== '' ? "'" . carzo_escape($conn, $serviceDate) . "'" : 'NULL',
-        'next_service_date' => $nextServiceDate !== '' ? "'" . carzo_escape($conn, $nextServiceDate) . "'" : 'NULL',
+        'service_date' => $serviceDate !== '' ? "'" . yamu_escape($conn, $serviceDate) . "'" : 'NULL',
+        'next_service_date' => $nextServiceDate !== '' ? "'" . yamu_escape($conn, $nextServiceDate) . "'" : 'NULL',
         'service_notes' => $serviceNotes,
         'service_cost' => $serviceCost === null ? 'NULL' : $serviceCost,
         'vehicle_status' => $vehicleStatus,
-        'approved_by' => carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
+        'approved_by' => yamu_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
             ? (int) ($_SESSION['admin']['user_id'] ?? $ownerUserId)
             : (($existingVehicle && !empty($existingVehicle['approved_by'])) ? (int) $existingVehicle['approved_by'] : 'NULL'),
-        'approved_at' => carzo_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
+        'approved_at' => yamu_is_admin_panel_role($submittedByRole) && $listingStatus === 'approved'
             ? 'NOW()'
-            : (($existingVehicle && !empty($existingVehicle['approved_at'])) ? "'" . carzo_escape($conn, $existingVehicle['approved_at']) . "'" : 'NULL'),
+            : (($existingVehicle && !empty($existingVehicle['approved_at'])) ? "'" . yamu_escape($conn, $existingVehicle['approved_at']) . "'" : 'NULL'),
         'images' => $images,
         'features' => $features,
     ], null];
 }
 
-function carzo_vehicle_save($conn, array $payload, $vehicleId = null)
+function yamu_vehicle_save($conn, array $payload, $vehicleId = null)
 {
     $features = $payload['features'];
     $images = $payload['images'];
@@ -202,14 +202,14 @@ function carzo_vehicle_save($conn, array $payload, $vehicleId = null)
         "`passengerairbag` = " . (int) $features['passengerairbag'],
         "`powerwindow` = " . (int) $features['powerwindow'],
         "`cdplayer` = " . (int) $features['cdplayer'],
-        "`vImg1` = '" . carzo_escape($conn, $images['vehicleImg1']) . "'",
-        "`vImg2` = '" . carzo_escape($conn, $images['vehicleImg2']) . "'",
-        "`vImg3` = '" . carzo_escape($conn, $images['vehicleImg3']) . "'",
-        "`vImg4` = '" . carzo_escape($conn, $images['vehicleImg4']) . "'",
+        "`vImg1` = '" . yamu_escape($conn, $images['vehicleImg1']) . "'",
+        "`vImg2` = '" . yamu_escape($conn, $images['vehicleImg2']) . "'",
+        "`vImg3` = '" . yamu_escape($conn, $images['vehicleImg3']) . "'",
+        "`vImg4` = '" . yamu_escape($conn, $images['vehicleImg4']) . "'",
         "`vehicle_status` = " . (int) $payload['vehicle_status'],
-        "`listing_status` = '" . carzo_escape($conn, $payload['listing_status']) . "'",
-        "`availability_status` = '" . carzo_escape($conn, $payload['availability_status']) . "'",
-        "`maintenance_status` = '" . carzo_escape($conn, $payload['maintenance_status']) . "'",
+        "`listing_status` = '" . yamu_escape($conn, $payload['listing_status']) . "'",
+        "`availability_status` = '" . yamu_escape($conn, $payload['availability_status']) . "'",
+        "`maintenance_status` = '" . yamu_escape($conn, $payload['maintenance_status']) . "'",
         "`service_date` = " . $payload['service_date'],
         "`next_service_date` = " . $payload['next_service_date'],
         "`service_notes` = '" . $payload['service_notes'] . "'",

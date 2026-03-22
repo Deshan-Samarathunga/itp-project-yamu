@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/driver-ad-management.php';
-carzo_start_session();
-carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+yamu_start_session();
+yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 include 'includes/config.php';
 $page_title = 'Driver Ads';
 
@@ -16,7 +16,7 @@ $allowedAvailabilityStatuses = ['available', 'busy', 'on_request'];
 $sql = "SELECT * FROM driver_ads WHERE driver_user_id = {$driverId}";
 
 if ($search !== '') {
-    $safeSearch = carzo_escape($conn, $search);
+    $safeSearch = yamu_escape($conn, $search);
     $sql .= " AND (
         ad_title LIKE '%{$safeSearch}%'
         OR tagline LIKE '%{$safeSearch}%'
@@ -27,11 +27,11 @@ if ($search !== '') {
 }
 
 if (in_array($statusFilter, $allowedStatuses, true)) {
-    $sql .= " AND advertisement_status = '" . carzo_escape($conn, $statusFilter) . "'";
+    $sql .= " AND advertisement_status = '" . yamu_escape($conn, $statusFilter) . "'";
 }
 
 if (in_array($availabilityFilter, $allowedAvailabilityStatuses, true)) {
-    $sql .= " AND availability_status = '" . carzo_escape($conn, $availabilityFilter) . "'";
+    $sql .= " AND availability_status = '" . yamu_escape($conn, $availabilityFilter) . "'";
 }
 
 $sql .= ' ORDER BY updated_at DESC, driver_ad_id DESC';
@@ -59,7 +59,7 @@ $result = mysqli_query($conn, $sql);
                     <p class="profile-intro">Create public advertisements so travelers can discover you for day tours, airport pickups, chauffeur service, and private trips.</p>
 
                     <form action="" method="GET" class="driver-filter-form manage-filter-form">
-                        <input type="text" name="search" value="<?php echo carzo_e($search); ?>" placeholder="Search title, location, language..." />
+                        <input type="text" name="search" value="<?php echo yamu_e($search); ?>" placeholder="Search title, location, language..." />
                         <select name="status">
                             <option value="">All Visibility</option>
                             <option value="active" <?php echo $statusFilter === 'active' ? 'selected' : ''; ?>>Published</option>
@@ -97,16 +97,16 @@ $result = mysqli_query($conn, $sql);
                                         <tr>
                                             <td><?php echo (int) $ad['driver_ad_id']; ?></td>
                                             <td>
-                                                <strong><?php echo carzo_e($ad['ad_title']); ?></strong>
+                                                <strong><?php echo yamu_e($ad['ad_title']); ?></strong>
                                                 <?php if (!empty($ad['tagline'])) { ?>
-                                                    <br><small><?php echo carzo_e($ad['tagline']); ?></small>
+                                                    <br><small><?php echo yamu_e($ad['tagline']); ?></small>
                                                 <?php } ?>
                                             </td>
-                                            <td><?php echo carzo_e($ad['service_location']); ?></td>
-                                            <td>Rs. <?php echo carzo_money($ad['daily_rate']); ?> / day</td>
-                                            <td><span class="<?php echo carzo_e(carzo_badge_class($ad['availability_status'])); ?>"><?php echo carzo_e(ucwords(str_replace('_', ' ', $ad['availability_status']))); ?></span></td>
-                                            <td><span class="<?php echo carzo_e(carzo_badge_class($ad['advertisement_status'])); ?>"><?php echo carzo_e(ucfirst($ad['advertisement_status'])); ?></span></td>
-                                            <td><?php echo carzo_e($ad['updated_at'] ?: $ad['created_at']); ?></td>
+                                            <td><?php echo yamu_e($ad['service_location']); ?></td>
+                                            <td>Rs. <?php echo yamu_money($ad['daily_rate']); ?> / day</td>
+                                            <td><span class="<?php echo yamu_e(yamu_badge_class($ad['availability_status'])); ?>"><?php echo yamu_e(ucwords(str_replace('_', ' ', $ad['availability_status']))); ?></span></td>
+                                            <td><span class="<?php echo yamu_e(yamu_badge_class($ad['advertisement_status'])); ?>"><?php echo yamu_e(ucfirst($ad['advertisement_status'])); ?></span></td>
+                                            <td><?php echo yamu_e($ad['updated_at'] ?: $ad['created_at']); ?></td>
                                             <td class="action-cell">
                                                 <div class="table-actions">
                                                     <a href="driver-ad-edit.php?ad_id=<?php echo (int) $ad['driver_ad_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>

@@ -1,49 +1,41 @@
 <?php
 require_once __DIR__ . '/auth.php';
-carzo_start_session();
+yamu_start_session();
 include 'config.php';
 
 if (isset($_POST['signup'])) {
-    carzo_ensure_users_password_column($conn);
+    yamu_ensure_users_password_column($conn);
 
     $fullName = trim((string) ($_POST['fullName'] ?? ''));
     $email = trim((string) ($_POST['email'] ?? ''));
     $username = trim((string) ($_POST['username'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
     $confirmPassword = (string) ($_POST['conPassword'] ?? '');
-    $role = carzo_normalize_role($_POST['role'] ?? 'customer');
     $phone = trim($_POST['phone'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $address = trim($_POST['address'] ?? '');
-    $licenseOrNic = trim($_POST['license_or_nic'] ?? '');
-    $bio = trim($_POST['bio'] ?? '');
+    $role = 'customer';
+    $licenseOrNic = '';
+    $bio = '';
 
     if ($fullName === '' || $email === '' || $username === '' || $password === '') {
-        carzo_redirect_with_message('../signup.php', 'error', 'Please fill in all required fields');
+        yamu_redirect_with_message('../signup.php', 'error', 'Please fill in all required fields');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Please enter a valid email address');
+        yamu_redirect_with_message('../signup.php', 'error', 'Please enter a valid email address');
     }
 
     if (strlen($password) < 8) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Password must contain at least 8 characters');
-    }
-
-    if ($role === 'admin') {
-        $role = 'customer';
+        yamu_redirect_with_message('../signup.php', 'error', 'Password must contain at least 8 characters');
     }
 
     if ($password !== $confirmPassword) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Password confirmation failed');
+        yamu_redirect_with_message('../signup.php', 'error', 'Password confirmation failed');
     }
 
-    if ($role === 'driver' && $licenseOrNic === '') {
-        carzo_redirect_with_message('../signup.php', 'error', 'Driver registration requires a license number or NIC');
-    }
-
-    if (carzo_fetch_user_by_email($conn, $email)) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Email Id Already Exists');
+    if (yamu_fetch_user_by_email($conn, $email)) {
+        yamu_redirect_with_message('../signup.php', 'error', 'Email Id Already Exists');
     }
 
     $usernameStmt = $conn->prepare('SELECT user_id FROM users WHERE username = ? LIMIT 1');
@@ -53,14 +45,14 @@ if (isset($_POST['signup'])) {
         $usernameResult = $usernameStmt->get_result();
         if ($usernameResult && $usernameResult->num_rows > 0) {
             $usernameStmt->close();
-            carzo_redirect_with_message('../signup.php', 'error', 'Username already exists');
+            yamu_redirect_with_message('../signup.php', 'error', 'Username already exists');
         }
         $usernameStmt->close();
     }
 
-    $accountStatus = carzo_default_account_status_for_role($role);
-    $verificationStatus = carzo_default_verification_status_for_role($role);
-    $hashedPassword = carzo_hash_password($password);
+    $accountStatus = yamu_default_account_status_for_role($role);
+    $verificationStatus = yamu_default_verification_status_for_role($role);
+    $hashedPassword = yamu_hash_password($password);
     $defaultAvatar = 'avatar.png';
 
     $stmt = $conn->prepare(
@@ -69,7 +61,7 @@ if (isset($_POST['signup'])) {
     );
 
     if (!$stmt) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Registration Failed');
+        yamu_redirect_with_message('../signup.php', 'error', 'Registration Failed');
     }
 
     $emptyDob = '';
@@ -93,35 +85,27 @@ if (isset($_POST['signup'])) {
 
     if (!$stmt->execute()) {
         $stmt->close();
-        carzo_redirect_with_message('../signup.php', 'error', 'Registration Failed');
+        yamu_redirect_with_message('../signup.php', 'error', 'Registration Failed');
     }
 
     $newUserId = $stmt->insert_id;
     $stmt->close();
 
-    $newUser = carzo_fetch_user_by_id($conn, $newUserId);
+    $newUser = yamu_fetch_user_by_id($conn, $newUserId);
 
     if (!$newUser) {
-        carzo_redirect_with_message('../signup.php', 'error', 'Registration Failed');
+        yamu_redirect_with_message('../signup.php', 'error', 'Registration Failed');
     }
 
-    if (carzo_table_exists($conn, 'user_roles')) {
+    if (yamu_table_exists($conn, 'user_roles')) {
         $sessionAdminId = (int) ($_SESSION['admin']['user_id'] ?? 0);
-        carzo_upsert_user_role_assignment($conn, $newUserId, $role, $accountStatus, $verificationStatus, true, $sessionAdminId ?: null, 'Created during self-registration');
-        carzo_ensure_role_profile_row($conn, $newUserId, $role, $newUser);
+        yamu_upsert_user_role_assignment($conn, $newUserId, $role, $accountStatus, $verificationStatus, true, $sessionAdminId ?: null, 'Created during self-registration');
+        yamu_ensure_role_profile_row($conn, $newUserId, $role, $newUser);
 
-        if ($role !== 'customer') {
-            carzo_upsert_user_role_assignment($conn, $newUserId, 'customer', 'active', 'verified', false, $sessionAdminId ?: null, 'Default customer role on registration');
-            carzo_ensure_role_profile_row($conn, $newUserId, 'customer', $newUser);
-        }
+        yamu_sync_user_primary_role_snapshot($conn, $newUserId);
     }
 
-    $sessionUser = carzo_set_user_session($newUser, $conn, $role);
-
-    if (!empty($sessionUser['roles']) && count((array) $sessionUser['roles']) > 1) {
-        carzo_redirect_with_message('../choose-role.php', 'msg', 'Registration successful. Select your active role to continue.');
-    }
-
-    $redirectPath = carzo_public_home_path_for_role($sessionUser['active_role'] ?? $role);
-    carzo_redirect_with_message('../' . $redirectPath, 'msg', 'Registration Successful');
+    $sessionUser = yamu_set_user_session($newUser, $conn, 'customer');
+    $redirectPath = yamu_public_home_path_for_role($sessionUser['active_role'] ?? 'customer');
+    yamu_redirect_with_message('../' . $redirectPath, 'msg', 'Registration Successful');
 }

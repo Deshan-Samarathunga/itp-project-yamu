@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
-    carzo_redirect_authenticated_actor();
+    yamu_start_session();
+    yamu_redirect_authenticated_actor();
     $page_title = "Signup";
 ?>
 
@@ -29,6 +29,7 @@
                     <form action="includes/signup-process.php" method="POST" class="signup-form" onsubmit="return checkPassword()">
                         <h3>Create an Account</h3>
                         <p>Lets start with <span>&#3514;&#3512;&#3540;</span></p>
+                        <p>Public signup creates a customer account. Driver and rental center roles can be requested later from your account.</p>
                         <div class="form-group">
                             <label for="fullName">Full Name:</label>
                             <input type="text" name="fullName" id="fullName" placeholder="Enter Name" required/>
@@ -42,14 +43,6 @@
                             <input type="text" name="username" id="username" placeholder="Enter Username" required/>
                         </div>
                         <div class="form-group">
-                            <label for="role">Account Type:</label>
-                            <select name="role" id="role" onchange="toggleDriverFields()" required>
-                                <option value="customer">Customer</option>
-                                <option value="driver">Driver</option>
-                                <option value="staff">Staff</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label for="phone">Phone Number:</label>
                             <input type="tel" name="phone" id="phone" placeholder="Enter Phone Number"/>
                         </div>
@@ -60,16 +53,6 @@
                         <div class="form-group">
                             <label for="address">Address:</label>
                             <textarea name="address" id="address" placeholder="Enter Address"></textarea>
-                        </div>
-                        <div id="driver-fields" style="display: none;">
-                            <div class="form-group">
-                                <label for="license_or_nic">License / NIC:</label>
-                                <input type="text" name="license_or_nic" id="license_or_nic" placeholder="Enter License Number or NIC"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="bio">Driver Bio:</label>
-                                <textarea name="bio" id="bio" placeholder="Tell customers a little about yourself"></textarea>
-                            </div>
                         </div>
                         <div class="form-group">
                             <label for="password">Password:</label>
@@ -129,20 +112,6 @@
             }
         }
 
-        function toggleDriverFields() {
-            const role = document.getElementById("role").value;
-            const driverFields = document.getElementById("driver-fields");
-            const licenseInput = document.getElementById("license_or_nic");
-
-            if (role === "driver") {
-                driverFields.style.display = "block";
-                licenseInput.required = true;
-            } else {
-                driverFields.style.display = "none";
-                licenseInput.required = false;
-            }
-        }
-
         // Check Password
         function checkPassword() {
             const password = document.getElementById("password").value;
@@ -155,8 +124,6 @@
 
             return true;
         }
-
-        toggleDriverFields();
             
     </script>
     <script src="assets/js/main.js"></script>

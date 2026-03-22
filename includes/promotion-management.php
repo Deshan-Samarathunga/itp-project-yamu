@@ -1,40 +1,40 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-function carzo_promotion_normalize_status($status)
+function yamu_promotion_normalize_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowed = ['active', 'inactive'];
     return in_array($status, $allowed, true) ? $status : 'inactive';
 }
 
-function carzo_promotion_normalize_discount_type($type)
+function yamu_promotion_normalize_discount_type($type)
 {
     $type = strtolower(trim((string) $type));
     $allowed = ['fixed', 'percentage'];
     return in_array($type, $allowed, true) ? $type : 'fixed';
 }
 
-function carzo_promotion_fetch_by_id($conn, $promotionId)
+function yamu_promotion_fetch_by_id($conn, $promotionId)
 {
     $promotionId = (int) $promotionId;
     $result = mysqli_query($conn, "SELECT * FROM promotions WHERE promotion_id = {$promotionId} LIMIT 1");
     return ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 }
 
-function carzo_promotion_fetch_by_code($conn, $code)
+function yamu_promotion_fetch_by_code($conn, $code)
 {
     $code = strtoupper(trim((string) $code));
     if ($code === '') {
         return null;
     }
 
-    $codeEscaped = carzo_escape($conn, $code);
+    $codeEscaped = yamu_escape($conn, $code);
     $result = mysqli_query($conn, "SELECT * FROM promotions WHERE UPPER(code) = '{$codeEscaped}' LIMIT 1");
     return ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 }
 
-function carzo_promotion_is_valid_now(array $promotion)
+function yamu_promotion_is_valid_now(array $promotion)
 {
     $now = time();
     $validFrom = !empty($promotion['valid_from']) ? strtotime($promotion['valid_from']) : null;
@@ -51,10 +51,10 @@ function carzo_promotion_is_valid_now(array $promotion)
     return true;
 }
 
-function carzo_promotion_calculate_discount(array $promotion, $amount)
+function yamu_promotion_calculate_discount(array $promotion, $amount)
 {
     $amount = (float) $amount;
-    $discountType = carzo_promotion_normalize_discount_type($promotion['discount_type'] ?? 'fixed');
+    $discountType = yamu_promotion_normalize_discount_type($promotion['discount_type'] ?? 'fixed');
     $discountValue = (float) ($promotion['discount_value'] ?? 0);
 
     if ($discountType === 'percentage') {
@@ -67,19 +67,19 @@ function carzo_promotion_calculate_discount(array $promotion, $amount)
     return round($discountAmount, 2);
 }
 
-function carzo_promotion_validate_for_booking($conn, $code, $amount, $vehicleId)
+function yamu_promotion_validate_for_booking($conn, $code, $amount, $vehicleId)
 {
-    $promotion = carzo_promotion_fetch_by_code($conn, $code);
+    $promotion = yamu_promotion_fetch_by_code($conn, $code);
 
     if (!$promotion) {
         return [false, 'Promo code not found', 0.00, null];
     }
 
-    if (carzo_promotion_normalize_status($promotion['status'] ?? 'inactive') !== 'active') {
+    if (yamu_promotion_normalize_status($promotion['status'] ?? 'inactive') !== 'active') {
         return [false, 'Promo code is inactive', 0.00, null];
     }
 
-    if (!carzo_promotion_is_valid_now($promotion)) {
+    if (!yamu_promotion_is_valid_now($promotion)) {
         return [false, 'Promo code has expired or is not active yet', 0.00, null];
     }
 
@@ -99,6 +99,6 @@ function carzo_promotion_validate_for_booking($conn, $code, $amount, $vehicleId)
         return [false, 'Promo code is not valid for this vehicle', 0.00, null];
     }
 
-    $discountAmount = carzo_promotion_calculate_discount($promotion, $amount);
+    $discountAmount = yamu_promotion_calculate_discount($promotion, $amount);
     return [$promotion, null, $discountAmount, round((float) $amount - $discountAmount, 2)];
 }

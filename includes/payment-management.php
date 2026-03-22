@@ -3,42 +3,42 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/booking-management.php';
 require_once __DIR__ . '/promotion-management.php';
 
-function carzo_payment_normalize_status($status)
+function yamu_payment_normalize_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowed = ['pending', 'paid', 'failed', 'refunded'];
     return in_array($status, $allowed, true) ? $status : 'pending';
 }
 
-function carzo_payment_normalize_method($method)
+function yamu_payment_normalize_method($method)
 {
     $method = strtolower(trim((string) $method));
     $allowed = ['mock_card', 'bank_transfer', 'cash', 'wallet'];
     return in_array($method, $allowed, true) ? $method : 'mock_card';
 }
 
-function carzo_payment_fetch($conn, $paymentId)
+function yamu_payment_fetch($conn, $paymentId)
 {
     $paymentId = (int) $paymentId;
     $result = mysqli_query($conn, "SELECT * FROM payments WHERE payment_id = {$paymentId} LIMIT 1");
     return ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 }
 
-function carzo_payment_fetch_by_booking($conn, $bookingId)
+function yamu_payment_fetch_by_booking($conn, $bookingId)
 {
     $bookingId = (int) $bookingId;
     $result = mysqli_query($conn, "SELECT * FROM payments WHERE booking_id = {$bookingId} ORDER BY created_at DESC, payment_id DESC LIMIT 1");
     return ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 }
 
-function carzo_payment_reference()
+function yamu_payment_reference()
 {
     return 'TXN' . date('YmdHis') . rand(100, 999);
 }
 
-function carzo_payment_create($conn, array $booking, $customerId, $paymentMethod, $promoCode = '')
+function yamu_payment_create($conn, array $booking, $customerId, $paymentMethod, $promoCode = '')
 {
-    $bookingStatus = carzo_booking_normalize_status($booking['booking_status'] ?? 'pending');
+    $bookingStatus = yamu_booking_normalize_status($booking['booking_status'] ?? 'pending');
     if (!in_array($bookingStatus, ['pending', 'confirmed', 'completed'], true)) {
         return [false, 'This booking cannot be paid in its current status', null];
     }
@@ -47,7 +47,7 @@ function carzo_payment_create($conn, array $booking, $customerId, $paymentMethod
         return [false, 'This booking does not belong to you', null];
     }
 
-    if (carzo_booking_normalize_payment_status($booking['payment_status'] ?? 'pending') === 'paid') {
+    if (yamu_booking_normalize_payment_status($booking['payment_status'] ?? 'pending') === 'paid') {
         return [false, 'This booking has already been paid', null];
     }
 
@@ -59,7 +59,7 @@ function carzo_payment_create($conn, array $booking, $customerId, $paymentMethod
 
     $promoCode = strtoupper(trim((string) $promoCode));
     if ($promoCode !== '') {
-        [$promotion, $promoError, $promoDiscount, $promoFinal] = carzo_promotion_validate_for_booking($conn, $promoCode, $amount, (int) ($booking['vehicle_ID'] ?? 0));
+        [$promotion, $promoError, $promoDiscount, $promoFinal] = yamu_promotion_validate_for_booking($conn, $promoCode, $amount, (int) ($booking['vehicle_ID'] ?? 0));
 
         if ($promotion === false) {
             return [false, $promoError, null];
@@ -68,13 +68,13 @@ function carzo_payment_create($conn, array $booking, $customerId, $paymentMethod
         $discountAmount = (float) $promoDiscount;
         $finalAmount = (float) $promoFinal;
         $promotionId = (int) $promotion['promotion_id'];
-        $promoCodeValue = "'" . carzo_escape($conn, $promotion['code']) . "'";
+        $promoCodeValue = "'" . yamu_escape($conn, $promotion['code']) . "'";
     }
 
-    $paymentMethod = carzo_payment_normalize_method($paymentMethod);
-    $paymentMethodEscaped = carzo_escape($conn, $paymentMethod);
-    $transactionReference = carzo_payment_reference();
-    $referenceEscaped = carzo_escape($conn, $transactionReference);
+    $paymentMethod = yamu_payment_normalize_method($paymentMethod);
+    $paymentMethodEscaped = yamu_escape($conn, $paymentMethod);
+    $transactionReference = yamu_payment_reference();
+    $referenceEscaped = yamu_escape($conn, $transactionReference);
 
     $sql = "INSERT INTO payments
             (`booking_id`, `customer_id`, `driver_id`, `promotion_id`, `promo_code`, `amount`, `discount_amount`, `final_amount`, `payment_method`, `transaction_reference`, `payment_status`, `paid_at`, `created_at`, `updated_at`)
@@ -119,15 +119,15 @@ function carzo_payment_create($conn, array $booking, $customerId, $paymentMethod
     return [true, 'Payment completed successfully', $paymentId];
 }
 
-function carzo_payment_update_status($conn, $paymentId, $newStatus)
+function yamu_payment_update_status($conn, $paymentId, $newStatus)
 {
-    $payment = carzo_payment_fetch($conn, $paymentId);
+    $payment = yamu_payment_fetch($conn, $paymentId);
     if (!$payment) {
         return false;
     }
 
-    $newStatus = carzo_payment_normalize_status($newStatus);
-    $statusEscaped = carzo_escape($conn, $newStatus);
+    $newStatus = yamu_payment_normalize_status($newStatus);
+    $statusEscaped = yamu_escape($conn, $newStatus);
     $paidAtSql = $newStatus === 'paid' ? ', paid_at = NOW()' : '';
 
     $updated = mysqli_query(

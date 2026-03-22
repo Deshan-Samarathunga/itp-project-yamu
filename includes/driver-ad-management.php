@@ -3,7 +3,7 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/driver-ad-options.php';
 
-function carzo_driver_ad_normalize_availability_status($status)
+function yamu_driver_ad_normalize_availability_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowedStatuses = ['available', 'busy', 'on_request'];
@@ -11,7 +11,7 @@ function carzo_driver_ad_normalize_availability_status($status)
     return in_array($status, $allowedStatuses, true) ? $status : 'available';
 }
 
-function carzo_driver_ad_normalize_advertisement_status($status)
+function yamu_driver_ad_normalize_advertisement_status($status)
 {
     $status = strtolower(trim((string) $status));
     $allowedStatuses = ['active', 'paused', 'draft'];
@@ -19,7 +19,7 @@ function carzo_driver_ad_normalize_advertisement_status($status)
     return in_array($status, $allowedStatuses, true) ? $status : 'draft';
 }
 
-function carzo_driver_ad_normalize_contact_preference($preference)
+function yamu_driver_ad_normalize_contact_preference($preference)
 {
     $preference = strtolower(trim((string) $preference));
     $allowedPreferences = ['phone', 'email', 'both'];
@@ -27,7 +27,7 @@ function carzo_driver_ad_normalize_contact_preference($preference)
     return in_array($preference, $allowedPreferences, true) ? $preference : 'both';
 }
 
-function carzo_driver_ad_fetch($conn, $adId)
+function yamu_driver_ad_fetch($conn, $adId)
 {
     $stmt = $conn->prepare('SELECT * FROM driver_ads WHERE driver_ad_id = ? LIMIT 1');
 
@@ -44,7 +44,7 @@ function carzo_driver_ad_fetch($conn, $adId)
     return $ad ?: null;
 }
 
-function carzo_driver_profile_image_upload($currentImage = 'avatar.png')
+function yamu_driver_profile_image_upload($currentImage = 'avatar.png')
 {
     if (!isset($_FILES['profileImage']) || empty($_FILES['profileImage']['name'])) {
         return [$currentImage ?: 'avatar.png', null];
@@ -65,6 +65,10 @@ function carzo_driver_profile_image_upload($currentImage = 'avatar.png')
     $newName = uniqid('driver_', true) . '.' . $extension;
     $destination = dirname(__DIR__) . '/assets/images/uploads/avatar/' . $newName;
 
+    if (!is_dir(dirname($destination))) {
+        mkdir(dirname($destination), 0777, true);
+    }
+
     if (!move_uploaded_file($_FILES['profileImage']['tmp_name'], $destination)) {
         return [false, 'Failed to upload the driver photo'];
     }
@@ -72,7 +76,7 @@ function carzo_driver_profile_image_upload($currentImage = 'avatar.png')
     return [$newName, null];
 }
 
-function carzo_driver_save_profile_image($conn, $driverUserId, $profileImageName)
+function yamu_driver_save_profile_image($conn, $driverUserId, $profileImageName)
 {
     $stmt = $conn->prepare('UPDATE users SET profile_pic = ?, updated_at = NOW() WHERE user_id = ? LIMIT 1');
 
@@ -87,7 +91,7 @@ function carzo_driver_save_profile_image($conn, $driverUserId, $profileImageName
     return $saved;
 }
 
-function carzo_driver_ad_collect_payload($driverUserId, $existingAd = null)
+function yamu_driver_ad_collect_payload($driverUserId, $existingAd = null)
 {
     $title = trim((string) ($_POST['ad_title'] ?? ''));
     $tagline = trim((string) ($_POST['tagline'] ?? ''));
@@ -107,7 +111,7 @@ function carzo_driver_ad_collect_payload($driverUserId, $existingAd = null)
         return [false, 'Please enter your main service location'];
     }
 
-    if (!carzo_driver_service_location_exists($serviceLocation)) {
+    if (!yamu_driver_service_location_exists($serviceLocation)) {
         return [false, 'Please select a valid service location'];
     }
 
@@ -115,7 +119,7 @@ function carzo_driver_ad_collect_payload($driverUserId, $existingAd = null)
         return [false, 'Please enter the languages you speak'];
     }
 
-    if (!carzo_driver_language_exists($languages)) {
+    if (!yamu_driver_language_exists($languages)) {
         return [false, 'Please select a valid language option'];
     }
 
@@ -144,15 +148,15 @@ function carzo_driver_ad_collect_payload($driverUserId, $existingAd = null)
         'experience_years' => (int) $experienceYearsInput,
         'daily_rate' => (float) $dailyRateInput,
         'max_group_size' => (int) $groupSizeInput,
-        'availability_status' => carzo_driver_ad_normalize_availability_status($_POST['availability_status'] ?? ($existingAd['availability_status'] ?? 'available')),
-        'advertisement_status' => carzo_driver_ad_normalize_advertisement_status($_POST['advertisement_status'] ?? ($existingAd['advertisement_status'] ?? 'draft')),
+        'availability_status' => yamu_driver_ad_normalize_availability_status($_POST['availability_status'] ?? ($existingAd['availability_status'] ?? 'available')),
+        'advertisement_status' => yamu_driver_ad_normalize_advertisement_status($_POST['advertisement_status'] ?? ($existingAd['advertisement_status'] ?? 'draft')),
         'specialties' => $specialties,
         'description' => $description,
-        'contact_preference' => carzo_driver_ad_normalize_contact_preference($_POST['contact_preference'] ?? ($existingAd['contact_preference'] ?? 'both')),
+        'contact_preference' => yamu_driver_ad_normalize_contact_preference($_POST['contact_preference'] ?? ($existingAd['contact_preference'] ?? 'both')),
     ], null];
 }
 
-function carzo_driver_ad_save($conn, array $payload, $adId = null)
+function yamu_driver_ad_save($conn, array $payload, $adId = null)
 {
     if ($adId !== null) {
         $stmt = $conn->prepare(

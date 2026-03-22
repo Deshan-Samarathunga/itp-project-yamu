@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
+    yamu_start_session();
     $page_title = "Access Denied";
 ?>
 <!DOCTYPE html>
@@ -18,10 +18,10 @@
                 <h3>Access Denied</h3>
                 <p>You do not have permission to access this page with your current role.</p>
                 <div class="form-submit">
-                    <?php if (carzo_is_user_authenticated()) { ?>
+                    <?php if (yamu_is_user_authenticated()) { ?>
                         <a href="role-switch.php" class="btn main-btn">Switch Role</a>
                     <?php } ?>
-                    <a href="<?php echo carzo_e(carzo_current_public_home_path()); ?>" class="btn second-btn">Go Back</a>
+                    <a href="<?php echo yamu_e(yamu_current_public_home_path()); ?>" class="btn second-btn">Go Back</a>
                 </div>
             </div>
         </div>

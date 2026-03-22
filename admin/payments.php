@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Payments";
 include 'includes/config.php';
 
@@ -19,11 +19,11 @@ $sql = "SELECT p.*, b.booking_No, v.vehicle_title, c.full_name AS customer_name,
         WHERE 1 = 1";
 
 if (in_array($statusFilter, $allowedStatuses, true)) {
-    $sql .= " AND p.payment_status = '" . carzo_escape($conn, $statusFilter) . "'";
+    $sql .= " AND p.payment_status = '" . yamu_escape($conn, $statusFilter) . "'";
 }
 
 if (in_array($methodFilter, $allowedMethods, true)) {
-    $sql .= " AND p.payment_method = '" . carzo_escape($conn, $methodFilter) . "'";
+    $sql .= " AND p.payment_method = '" . yamu_escape($conn, $methodFilter) . "'";
 }
 
 $sql .= " ORDER BY p.created_at DESC, p.payment_id DESC";
@@ -47,13 +47,13 @@ $result = mysqli_query($conn, $sql);
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
-                                <option value="<?php echo carzo_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo carzo_e(ucfirst($allowedStatus)); ?></option>
+                                <option value="<?php echo yamu_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo yamu_e(ucfirst($allowedStatus)); ?></option>
                             <?php } ?>
                         </select>
                         <select name="method">
                             <option value="">All Methods</option>
                             <?php foreach ($allowedMethods as $allowedMethod) { ?>
-                                <option value="<?php echo carzo_e($allowedMethod); ?>" <?php echo $methodFilter === $allowedMethod ? 'selected' : ''; ?>><?php echo carzo_e(ucfirst(str_replace('_', ' ', $allowedMethod))); ?></option>
+                                <option value="<?php echo yamu_e($allowedMethod); ?>" <?php echo $methodFilter === $allowedMethod ? 'selected' : ''; ?>><?php echo yamu_e(ucfirst(str_replace('_', ' ', $allowedMethod))); ?></option>
                             <?php } ?>
                         </select>
                         <button type="submit" class="btn second-btn">Filter</button>
@@ -78,13 +78,13 @@ $result = mysqli_query($conn, $sql);
                         <?php if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['booking_No']); ?></td>
-                                    <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                    <td><?php echo carzo_e($row['customer_name']); ?></td>
-                                    <td><?php echo carzo_e($row['driver_name']); ?></td>
-                                    <td><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['payment_method']))); ?></td>
-                                    <td><?php echo carzo_money($row['final_amount']); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
+                                    <td><?php echo yamu_e($row['booking_No']); ?></td>
+                                    <td><?php echo yamu_e($row['vehicle_title']); ?></td>
+                                    <td><?php echo yamu_e($row['customer_name']); ?></td>
+                                    <td><?php echo yamu_e($row['driver_name']); ?></td>
+                                    <td><?php echo yamu_e(ucfirst(str_replace('_', ' ', $row['payment_method']))); ?></td>
+                                    <td><?php echo yamu_money($row['final_amount']); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['payment_status'])); ?>"><?php echo yamu_e(ucfirst($row['payment_status'])); ?></span></td>
                                     <td class="action-cell">
                                         <div class="table-actions">
                                         <a href="includes/payment-process.php?payment_id=<?php echo (int) $row['payment_id']; ?>&status=paid" class="edit-badge" title="Paid"><i class="ri-check-fill"></i></a>

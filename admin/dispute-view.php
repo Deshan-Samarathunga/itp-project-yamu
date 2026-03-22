@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/dispute-management.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Disputes";
 include 'includes/config.php';
 
@@ -19,7 +19,7 @@ $result = mysqli_query($conn, $sql);
 $complaint = ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 
 if (!$complaint) {
-    carzo_redirect_with_message('disputes.php', 'error', 'Dispute not found');
+    yamu_redirect_with_message('disputes.php', 'error', 'Dispute not found');
 }
 ?>
 <!DOCTYPE html>
@@ -34,14 +34,14 @@ if (!$complaint) {
         <h2>Dispute Details</h2>
         <div class="main-cards">
             <div class="card">
-                <div class="form-group"><label>Booking No.</label><input type="text" value="<?php echo carzo_e($complaint['booking_No']); ?>" readonly></div>
-                <div class="form-group"><label>Vehicle</label><input type="text" value="<?php echo carzo_e($complaint['vehicle_title']); ?>" readonly></div>
-                <div class="form-group"><label>Customer</label><input type="text" value="<?php echo carzo_e($complaint['complainant_name']); ?>" readonly></div>
-                <div class="form-group"><label>Target</label><input type="text" value="<?php echo carzo_e($complaint['target_name']); ?>" readonly></div>
-                <div class="form-group"><label>Subject</label><input type="text" value="<?php echo carzo_e($complaint['subject']); ?>" readonly></div>
-                <div class="form-group"><label>Category</label><input type="text" value="<?php echo carzo_e($complaint['category']); ?>" readonly></div>
-                <div class="form-group"><label>Description</label><textarea readonly><?php echo carzo_e($complaint['description']); ?></textarea></div>
-                <div class="form-group"><label>Driver Response</label><textarea readonly><?php echo carzo_e($complaint['driver_response']); ?></textarea></div>
+                <div class="form-group"><label>Booking No.</label><input type="text" value="<?php echo yamu_e($complaint['booking_No']); ?>" readonly></div>
+                <div class="form-group"><label>Vehicle</label><input type="text" value="<?php echo yamu_e($complaint['vehicle_title']); ?>" readonly></div>
+                <div class="form-group"><label>Customer</label><input type="text" value="<?php echo yamu_e($complaint['complainant_name']); ?>" readonly></div>
+                <div class="form-group"><label>Target</label><input type="text" value="<?php echo yamu_e($complaint['target_name']); ?>" readonly></div>
+                <div class="form-group"><label>Subject</label><input type="text" value="<?php echo yamu_e($complaint['subject']); ?>" readonly></div>
+                <div class="form-group"><label>Category</label><input type="text" value="<?php echo yamu_e($complaint['category']); ?>" readonly></div>
+                <div class="form-group"><label>Description</label><textarea readonly><?php echo yamu_e($complaint['description']); ?></textarea></div>
+                <div class="form-group"><label>Driver Response</label><textarea readonly><?php echo yamu_e($complaint['driver_response']); ?></textarea></div>
                 <form action="includes/dispute-process.php" method="POST" class="signup-form">
                     <input type="hidden" name="complaint_id" value="<?php echo (int) $complaint['complaint_id']; ?>">
                     <div class="form-group">
@@ -55,7 +55,7 @@ if (!$complaint) {
                     </div>
                     <div class="form-group">
                         <label for="admin_notes">Admin Notes</label>
-                        <textarea name="admin_notes" id="admin_notes"><?php echo carzo_e($complaint['admin_notes']); ?></textarea>
+                        <textarea name="admin_notes" id="admin_notes"><?php echo yamu_e($complaint['admin_notes']); ?></textarea>
                     </div>
                     <input type="submit" value="Update Dispute" class="btn main-btn" name="updateDispute">
                 </form>

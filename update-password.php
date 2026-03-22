@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
-    carzo_require_user_roles(['customer', 'driver', 'staff', 'admin'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
+    yamu_start_session();
+    yamu_require_user_roles(['customer', 'driver', 'staff', 'admin'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
     $page_title = "Update Password"; 
 ?>
 
@@ -31,14 +31,6 @@
                 <div class="profile-details card">
                     <h3>Change password</h3>
                     <form action="includes/update-password.php" method="POST" class="signup-form">
-                        <input 
-                            type="hidden" 
-                            name="userID" 
-                            id="userID" 
-                            placeholder="Enter Name" 
-                            value = "<?php echo $_SESSION['user']['user_ID'] ?>"
-                            required
-                        />
                         <div class="form-group">
                             <label for="current_password">Current Password:</label>
                             <input type="password" name="current_password" id="current_password" placeholder="Enter Current Password" required/>

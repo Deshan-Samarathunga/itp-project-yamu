@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Promotions";
 include 'includes/config.php';
 
@@ -44,13 +44,13 @@ $result = mysqli_query($conn, $sql);
                         <?php if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['code']); ?></td>
-                                    <td><?php echo carzo_e($row['title']); ?></td>
-                                    <td><?php echo carzo_e($row['discount_type'] === 'percentage' ? carzo_money($row['discount_value']) . '%' : 'Rs. ' . carzo_money($row['discount_value'])); ?></td>
-                                    <td><?php echo carzo_e($row['valid_to']); ?></td>
+                                    <td><?php echo yamu_e($row['code']); ?></td>
+                                    <td><?php echo yamu_e($row['title']); ?></td>
+                                    <td><?php echo yamu_e($row['discount_type'] === 'percentage' ? yamu_money($row['discount_value']) . '%' : 'Rs. ' . yamu_money($row['discount_value'])); ?></td>
+                                    <td><?php echo yamu_e($row['valid_to']); ?></td>
                                     <td><?php echo (int) $row['usage_count']; ?> / <?php echo (int) ($row['usage_limit'] ?: 0); ?></td>
-                                    <td><?php echo carzo_e($row['vehicle_title'] ?: 'All vehicles'); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst($row['status'])); ?></span></td>
+                                    <td><?php echo yamu_e($row['vehicle_title'] ?: 'All vehicles'); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['status'])); ?>"><?php echo yamu_e(ucfirst($row['status'])); ?></span></td>
                                     <td class="action-cell">
                                         <div class="table-actions">
                                         <a href="promotion-edit.php?promotion_id=<?php echo (int) $row['promotion_id']; ?>" class="edit-badge" title="Edit"><i class="ri-pencil-fill"></i></a>

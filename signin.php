@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
-    carzo_redirect_authenticated_actor();
+    yamu_start_session();
+    yamu_redirect_authenticated_actor();
     $page_title = "Signin";
 ?>
 
