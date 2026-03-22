@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
+    yamu_start_session();
     $page_title = "Access Denied";
 ?>
 <!DOCTYPE html>
@@ -16,7 +16,7 @@
                 <h3>Access Denied</h3>
                 <p>You do not have permission to access this admin page.</p>
                 <div class="form-submit">
-                    <?php if (carzo_is_admin_authenticated()) { ?>
+                    <?php if (yamu_is_admin_authenticated()) { ?>
                         <a href="dashboard.php" class="btn main-btn">Back to Dashboard</a>
                     <?php } else { ?>
                         <a href="index.php" class="btn main-btn">Admin Sign In</a>

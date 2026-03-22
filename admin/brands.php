@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     include 'includes/config.php'; // Database Connection
     $page_title = "Brands"; 
 ?>

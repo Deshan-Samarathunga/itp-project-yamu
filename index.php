@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     $page_title = "&#3514;&#3512;&#3540; | Book Your Car"; 
-    carzo_start_session();
+    yamu_start_session();
     include 'includes/config.php'; // Database Connection
 
     $heroPrimaryHref = 'car-listing.php';
@@ -9,11 +9,11 @@
     $heroSecondaryHref = 'car-listing.php';
     $heroSecondaryText = 'Explore Cars';
 
-    if (carzo_is_admin_authenticated()) {
+    if (yamu_is_admin_authenticated()) {
         $heroPrimaryHref = 'admin/dashboard.php';
         $heroPrimaryText = 'Admin Dashboard';
-    } elseif (carzo_is_user_authenticated()) {
-        if (carzo_current_user_role() === 'driver') {
+    } elseif (yamu_is_user_authenticated()) {
+        if (yamu_current_user_role() === 'driver') {
             $heroPrimaryHref = 'driver-dashboard.php';
             $heroPrimaryText = 'Driver Dashboard';
             $heroSecondaryHref = 'driver-ads.php';
@@ -50,8 +50,8 @@
                 <h1>The <span>best</span> way to get a car</h1>
                 <p>If you’re looking for the latest in wireless headphones, look no further. 
                     These are perfect for TV, stereo, home, and cell phone.</p>
-                <a href="<?php echo carzo_e($heroPrimaryHref); ?>" class="btn main-btn"><?php echo carzo_e($heroPrimaryText); ?></a>
-                <a href="<?php echo carzo_e($heroSecondaryHref); ?>" class="btn second-btn"><?php echo carzo_e($heroSecondaryText); ?></a>
+                <a href="<?php echo yamu_e($heroPrimaryHref); ?>" class="btn main-btn"><?php echo yamu_e($heroPrimaryText); ?></a>
+                <a href="<?php echo yamu_e($heroSecondaryHref); ?>" class="btn second-btn"><?php echo yamu_e($heroSecondaryText); ?></a>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
+    yamu_start_session();
     $page_title = "Reset Password";
     $token = trim((string) ($_GET['token'] ?? ''));
 ?>
@@ -31,7 +31,7 @@
                     <form action="includes/reset-password.php" method="POST" class="signup-form">
                         <h3>Reset Password</h3>
                         <p>Set a new password for your account.</p>
-                        <input type="hidden" name="token" value="<?php echo carzo_e($token); ?>" />
+                        <input type="hidden" name="token" value="<?php echo yamu_e($token); ?>" />
                         <div class="form-group">
                             <label for="new_password">New Password:</label>
                             <input type="password" name="new_password" id="new_password" placeholder="Enter New Password" required/>

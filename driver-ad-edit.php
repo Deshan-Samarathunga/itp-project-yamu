@@ -2,19 +2,19 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/driver-ad-management.php';
 require_once __DIR__ . '/includes/driver-ad-options.php';
-carzo_start_session();
-carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+yamu_start_session();
+yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 include 'includes/config.php';
 $page_title = 'Driver Ads';
-$serviceLocations = carzo_driver_service_locations();
-$languageOptions = carzo_driver_language_options();
-$driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
+$serviceLocations = yamu_driver_service_locations();
+$languageOptions = yamu_driver_language_options();
+$driverPhoto = yamu_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
 
 $adId = isset($_GET['ad_id']) ? (int) $_GET['ad_id'] : 0;
-$ad = carzo_driver_ad_fetch($conn, $adId);
+$ad = yamu_driver_ad_fetch($conn, $adId);
 
 if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['user_ID'] ?? 0)) {
-    carzo_redirect_with_message('driver-ads.php', 'error', 'Driver advertisement not found');
+    yamu_redirect_with_message('driver-ads.php', 'error', 'Driver advertisement not found');
 }
 ?>
 
@@ -43,7 +43,7 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
 
                         <div class="driver-photo-upload">
                             <div class="driver-photo-preview">
-                                <img src="<?php echo carzo_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
+                                <img src="<?php echo yamu_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
                             </div>
                             <div class="driver-photo-copy">
                                 <h4>Driver Photo</h4>
@@ -55,23 +55,23 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
 
                         <div class="form-group">
                             <label for="ad_title">Advertisement Title:</label>
-                            <input type="text" name="ad_title" id="ad_title" value="<?php echo carzo_e($ad['ad_title']); ?>" required />
+                            <input type="text" name="ad_title" id="ad_title" value="<?php echo yamu_e($ad['ad_title']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="tagline">Short Tagline:</label>
-                            <input type="text" name="tagline" id="tagline" value="<?php echo carzo_e($ad['tagline']); ?>" />
+                            <input type="text" name="tagline" id="tagline" value="<?php echo yamu_e($ad['tagline']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="service_location">Service Location:</label>
                             <select name="service_location" id="service_location" required>
-                                <?php if (!empty($ad['service_location']) && !carzo_driver_service_location_exists($ad['service_location'])) { ?>
-                                    <option value="<?php echo carzo_e($ad['service_location']); ?>" selected><?php echo carzo_e($ad['service_location']); ?></option>
+                                <?php if (!empty($ad['service_location']) && !yamu_driver_service_location_exists($ad['service_location'])) { ?>
+                                    <option value="<?php echo yamu_e($ad['service_location']); ?>" selected><?php echo yamu_e($ad['service_location']); ?></option>
                                 <?php } else { ?>
                                     <option value="">--Select Service Location--</option>
                                 <?php } ?>
                                 <?php foreach ($serviceLocations as $serviceLocation) { ?>
-                                    <option value="<?php echo carzo_e($serviceLocation); ?>" <?php echo $ad['service_location'] === $serviceLocation ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e($serviceLocation); ?>
+                                    <option value="<?php echo yamu_e($serviceLocation); ?>" <?php echo $ad['service_location'] === $serviceLocation ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e($serviceLocation); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -79,14 +79,14 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
                         <div class="form-group">
                             <label for="languages">Languages:</label>
                             <select name="languages" id="languages" required>
-                                <?php if (!empty($ad['languages']) && !carzo_driver_language_exists($ad['languages'])) { ?>
-                                    <option value="<?php echo carzo_e($ad['languages']); ?>" selected><?php echo carzo_e($ad['languages']); ?></option>
+                                <?php if (!empty($ad['languages']) && !yamu_driver_language_exists($ad['languages'])) { ?>
+                                    <option value="<?php echo yamu_e($ad['languages']); ?>" selected><?php echo yamu_e($ad['languages']); ?></option>
                                 <?php } else { ?>
                                     <option value="">--Select Languages--</option>
                                 <?php } ?>
                                 <?php foreach ($languageOptions as $languageOption) { ?>
-                                    <option value="<?php echo carzo_e($languageOption); ?>" <?php echo $ad['languages'] === $languageOption ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e($languageOption); ?>
+                                    <option value="<?php echo yamu_e($languageOption); ?>" <?php echo $ad['languages'] === $languageOption ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e($languageOption); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -97,7 +97,7 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
                         </div>
                         <div class="form-group">
                             <label for="daily_rate">Daily Rate:</label>
-                            <input type="number" min="1" step="0.01" name="daily_rate" id="daily_rate" value="<?php echo carzo_e($ad['daily_rate']); ?>" required />
+                            <input type="number" min="1" step="0.01" name="daily_rate" id="daily_rate" value="<?php echo yamu_e($ad['daily_rate']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="max_group_size">Max Group Size:</label>
@@ -129,11 +129,11 @@ if (!$ad || (int) ($ad['driver_user_id'] ?? 0) !== (int) ($_SESSION['user']['use
                         </div>
                         <div class="form-group">
                             <label for="specialties">Tour Specialties:</label>
-                            <textarea name="specialties" id="specialties" rows="4"><?php echo carzo_e($ad['specialties']); ?></textarea>
+                            <textarea name="specialties" id="specialties" rows="4"><?php echo yamu_e($ad['specialties']); ?></textarea>
                         </div>
                         <div class="form-group">
                             <label for="description">Description:</label>
-                            <textarea name="description" id="description" rows="7" required><?php echo carzo_e($ad['description']); ?></textarea>
+                            <textarea name="description" id="description" rows="7" required><?php echo yamu_e($ad['description']); ?></textarea>
                         </div>
                         <a href="driver-ads.php" class="btn second-btn">Cancel</a>
                         <input type="submit" value="Update Advertisement" class="btn main-btn" name="updateDriverAd" />

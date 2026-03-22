@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Reviews";
 include 'includes/config.php';
 
@@ -16,7 +16,7 @@ $sql = "SELECT r.*, b.booking_No, v.vehicle_title, c.full_name AS customer_name,
         WHERE 1 = 1";
 
 if (in_array($statusFilter, $allowedStatuses, true)) {
-    $sql .= " AND r.status = '" . carzo_escape($conn, $statusFilter) . "'";
+    $sql .= " AND r.status = '" . yamu_escape($conn, $statusFilter) . "'";
 }
 
 $sql .= " ORDER BY r.created_at DESC, r.review_id DESC";
@@ -40,7 +40,7 @@ $result = mysqli_query($conn, $sql);
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
-                                <option value="<?php echo carzo_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo carzo_e(ucfirst($allowedStatus)); ?></option>
+                                <option value="<?php echo yamu_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo yamu_e(ucfirst($allowedStatus)); ?></option>
                             <?php } ?>
                         </select>
                         <button type="submit" class="btn second-btn">Filter</button>
@@ -65,13 +65,13 @@ $result = mysqli_query($conn, $sql);
                         <?php if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['booking_No']); ?></td>
-                                    <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                    <td><?php echo carzo_e($row['customer_name']); ?></td>
-                                    <td><?php echo carzo_e($row['driver_name']); ?></td>
+                                    <td><?php echo yamu_e($row['booking_No']); ?></td>
+                                    <td><?php echo yamu_e($row['vehicle_title']); ?></td>
+                                    <td><?php echo yamu_e($row['customer_name']); ?></td>
+                                    <td><?php echo yamu_e($row['driver_name']); ?></td>
                                     <td><?php echo str_repeat('★', (int) $row['rating']); ?></td>
-                                    <td><?php echo carzo_e($row['comment']); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst($row['status'])); ?></span></td>
+                                    <td><?php echo yamu_e($row['comment']); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['status'])); ?>"><?php echo yamu_e(ucfirst($row['status'])); ?></span></td>
                                     <td class="action-cell">
                                         <div class="table-actions">
                                         <a href="includes/review-process.php?review_id=<?php echo (int) $row['review_id']; ?>&status=visible" class="edit-badge" title="Visible"><i class="ri-eye-line"></i></a>

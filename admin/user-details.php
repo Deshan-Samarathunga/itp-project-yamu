@@ -1,18 +1,18 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php', 'access-denied.php');
+    yamu_start_session();
+    yamu_require_admin('index.php', 'access-denied.php');
     include 'includes/config.php';
     $page_title = "User Details";
 
     $userId = (int) ($_GET['user_id'] ?? 0);
-    $user = carzo_fetch_user_by_id($conn, $userId);
+    $user = yamu_fetch_user_by_id($conn, $userId);
 
     if (!$user) {
-        carzo_redirect_with_message('users.php', 'error', 'User not found');
+        yamu_redirect_with_message('users.php', 'error', 'User not found');
     }
 
-    $assignments = carzo_fetch_user_roles(
+    $assignments = yamu_fetch_user_roles(
         $conn,
         $userId,
         $user['role'] ?? 'customer',
@@ -20,10 +20,10 @@
         $user['verification_status'] ?? 'verified'
     );
 
-    $customerProfile = carzo_fetch_role_profile($conn, $userId, 'customer');
-    $driverProfile = carzo_fetch_role_profile($conn, $userId, 'driver');
-    $staffProfile = carzo_fetch_role_profile($conn, $userId, 'staff');
-    $adminProfile = carzo_fetch_role_profile($conn, $userId, 'admin');
+    $customerProfile = yamu_fetch_role_profile($conn, $userId, 'customer');
+    $driverProfile = yamu_fetch_role_profile($conn, $userId, 'driver');
+    $staffProfile = yamu_fetch_role_profile($conn, $userId, 'staff');
+    $adminProfile = yamu_fetch_role_profile($conn, $userId, 'admin');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,34 +41,35 @@
             <div class="main-cards">
                 <div class="card">
                     <div class="row" style="align-items: center; gap: 20px;">
-                        <img src="../assets/images/uploads/avatar/<?php echo carzo_e($user['profile_pic'] ?: 'avatar.png'); ?>" alt="avatar" class="table-avatar" style="width: 84px; height: 84px;">
+                        <img src="../assets/images/uploads/avatar/<?php echo yamu_e($user['profile_pic'] ?: 'avatar.png'); ?>" alt="avatar" class="table-avatar" style="width: 84px; height: 84px;">
                         <div>
-                            <h3><?php echo carzo_e($user['full_name']); ?></h3>
-                            <p><?php echo carzo_e($user['email']); ?></p>
+                            <h3><?php echo yamu_e($user['full_name']); ?></h3>
+                            <p><?php echo yamu_e($user['email']); ?></p>
                         </div>
                     </div>
                     <hr>
                     <div class="form-group">
                         <label>Username:</label>
-                        <input type="text" value="<?php echo carzo_e($user['username']); ?>" readonly>
+                        <input type="text" value="<?php echo yamu_e($user['username']); ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Phone:</label>
-                        <input type="text" value="<?php echo carzo_e($user['phone']); ?>" readonly>
+                        <input type="text" value="<?php echo yamu_e($user['phone']); ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Address:</label>
-                        <textarea readonly><?php echo carzo_e($user['address']); ?></textarea>
+                        <textarea readonly><?php echo yamu_e($user['address']); ?></textarea>
                     </div>
                     <div class="form-group">
                         <label>Account Status:</label>
-                        <input type="text" value="<?php echo carzo_e(ucfirst($user['account_status'])); ?>" readonly>
+                        <input type="text" value="<?php echo yamu_e(ucfirst($user['account_status'])); ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Created:</label>
-                        <input type="text" value="<?php echo carzo_e($user['created_at'] ?: $user['rag_date']); ?>" readonly>
+                        <input type="text" value="<?php echo yamu_e($user['created_at'] ?: $user['rag_date']); ?>" readonly>
                     </div>
                     <h3>Roles</h3>
+                    <p>Assigned roles determine which role profiles this user may access. Full operational permissions depend on the active role and role status.</p>
                     <table id="table">
                         <thead>
                             <tr>
@@ -81,37 +82,38 @@
                         <tbody class="table-body">
                             <?php foreach ($assignments as $roleKey => $assignment) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e(carzo_role_label($roleKey)); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($assignment['role_status'] ?? 'active')); ?>"><?php echo carzo_e(ucfirst($assignment['role_status'] ?? 'active')); ?></span></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($assignment['verification_status'] ?? 'verified')); ?>"><?php echo carzo_e(ucfirst($assignment['verification_status'] ?? 'verified')); ?></span></td>
+                                    <td><?php echo yamu_e(yamu_role_label($roleKey)); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($assignment['role_status'] ?? 'active')); ?>"><?php echo yamu_e(ucfirst($assignment['role_status'] ?? 'active')); ?></span></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($assignment['verification_status'] ?? 'verified')); ?>"><?php echo yamu_e(ucfirst($assignment['verification_status'] ?? 'verified')); ?></span></td>
                                     <td><?php echo !empty($assignment['is_primary']) ? 'Yes' : 'No'; ?></td>
                                 </tr>
                             <?php } ?>
                         </tbody>
                     </table>
 
-                    <?php if ($driverProfile) { ?>
+                    <?php if (isset($assignments['driver']) && $driverProfile) { ?>
                         <h3>Driver Profile</h3>
-                        <p>License: <?php echo carzo_e($driverProfile['driving_license_number'] ?? ''); ?></p>
-                        <p>NIC: <?php echo carzo_e($driverProfile['nic_id'] ?? ''); ?></p>
-                        <p>Service Area: <?php echo carzo_e($driverProfile['service_area'] ?? ''); ?></p>
+                        <p>License: <?php echo yamu_e($driverProfile['driving_license_number'] ?? ''); ?></p>
+                        <p>NIC: <?php echo yamu_e($driverProfile['nic_id'] ?? ''); ?></p>
+                        <p>Service Area: <?php echo yamu_e($driverProfile['service_area'] ?? ''); ?></p>
+                        <p>Provider Details: <?php echo yamu_e($driverProfile['provider_details'] ?? ''); ?></p>
                     <?php } ?>
 
-                    <?php if ($staffProfile) { ?>
+                    <?php if (isset($assignments['staff']) && $staffProfile) { ?>
                         <h3>Staff Profile</h3>
-                        <p>Store Name: <?php echo carzo_e($staffProfile['store_name'] ?? ''); ?></p>
-                        <p>Store Owner: <?php echo carzo_e($staffProfile['store_owner'] ?? ''); ?></p>
-                        <p>Business Reg No: <?php echo carzo_e($staffProfile['business_registration_number'] ?? ''); ?></p>
+                        <p>Store Name: <?php echo yamu_e($staffProfile['store_name'] ?? ''); ?></p>
+                        <p>Store Owner: <?php echo yamu_e($staffProfile['store_owner'] ?? ''); ?></p>
+                        <p>Business Reg No: <?php echo yamu_e($staffProfile['business_registration_number'] ?? ''); ?></p>
                     <?php } ?>
 
-                    <?php if ($customerProfile) { ?>
+                    <?php if (isset($assignments['customer']) && $customerProfile) { ?>
                         <h3>Customer Profile</h3>
-                        <p><?php echo carzo_e($customerProfile['preferences'] ?? 'No customer preferences provided'); ?></p>
+                        <p><?php echo yamu_e($customerProfile['preferences'] ?? 'No customer preferences provided'); ?></p>
                     <?php } ?>
 
-                    <?php if ($adminProfile) { ?>
+                    <?php if (isset($assignments['admin']) && $adminProfile) { ?>
                         <h3>Admin Profile</h3>
-                        <p>Permissions: <?php echo carzo_e($adminProfile['system_permissions'] ?? 'all'); ?></p>
+                        <p>Permissions: <?php echo yamu_e($adminProfile['system_permissions'] ?? 'all'); ?></p>
                     <?php } ?>
 
                     <div class="form-submit" style="margin-top: 20px;">

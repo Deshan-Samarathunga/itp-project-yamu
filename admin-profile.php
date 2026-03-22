@@ -1,12 +1,13 @@
 <?php
-    require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
-    carzo_require_any_assigned_user_role(['admin'], 'signin.php', 'access-denied.php');
-    include 'includes/config.php';
-    $page_title = "Admin Profile";
-    $userId = (int) ($_SESSION['user']['user_ID'] ?? 0);
-    carzo_ensure_role_profile_row($conn, $userId, 'admin');
-    $profile = carzo_fetch_role_profile($conn, $userId, 'admin') ?? [];
+require_once __DIR__ . '/includes/auth.php';
+yamu_start_session();
+yamu_require_user_roles(['admin'], 'signin.php', ['active', 'verified'], 'access-denied.php');
+include 'includes/config.php';
+
+$page_title = 'Admin Profile';
+$userId = (int) ($_SESSION['user']['user_ID'] ?? 0);
+yamu_ensure_role_profile_row($conn, $userId, 'admin');
+$profile = yamu_fetch_role_profile($conn, $userId, 'admin') ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,7 +30,7 @@
                     <form action="includes/role-profile-setting.php" method="POST" class="signup-form">
                         <div class="form-group">
                             <label for="system_permissions">System Permissions:</label>
-                            <textarea name="system_permissions" id="system_permissions" placeholder="e.g. all or comma-separated permissions"><?php echo carzo_e($profile['system_permissions'] ?? 'all'); ?></textarea>
+                            <textarea name="system_permissions" id="system_permissions" placeholder="e.g. all or comma-separated permissions"><?php echo yamu_e($profile['system_permissions'] ?? 'all'); ?></textarea>
                         </div>
                         <input type="submit" value="Update Admin Profile" class="btn main-btn" name="updateAdminProfile" />
                     </form>

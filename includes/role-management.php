@@ -1,38 +1,47 @@
 <?php
 require_once __DIR__ . '/auth.php';
-carzo_start_session();
+yamu_start_session();
 include 'config.php';
 
-if (!carzo_is_user_authenticated()) {
-    carzo_redirect_with_message('../signin.php', 'error', 'Please sign in to continue');
-}
+yamu_require_authenticated_user('../signin.php');
 
 $currentUserId = (int) ($_SESSION['user']['user_ID'] ?? 0);
-$fallbackRedirect = '../role-switch.php';
+
+if ($currentUserId <= 0) {
+    yamu_redirect_with_message('../signin.php', 'error', 'Please sign in to continue');
+}
 
 if (isset($_POST['switchRole'])) {
-    $role = carzo_normalize_role($_POST['active_role'] ?? 'customer');
+    $role = yamu_normalize_role($_POST['active_role'] ?? 'customer');
     $redirectTo = trim((string) ($_POST['redirect_to'] ?? ''));
     $errorMessage = null;
 
-    if (!carzo_switch_active_role($conn, $role, $errorMessage)) {
-        carzo_redirect_with_message('../role-switch.php', 'error', $errorMessage ?: 'Unable to switch role');
+    if (!yamu_switch_active_role($conn, $role, $errorMessage)) {
+        yamu_redirect_with_message('../role-switch.php', 'error', $errorMessage ?: 'Unable to switch role');
     }
 
-    $target = $redirectTo !== '' ? $redirectTo : carzo_current_public_home_path();
-    carzo_redirect_with_message('../' . ltrim($target, '/'), 'msg', 'Active role switched to ' . carzo_role_label($role));
+    $target = $redirectTo !== '' ? $redirectTo : yamu_current_public_home_path();
+    yamu_redirect_with_message('../' . ltrim($target, '/'), 'msg', 'Active role switched to ' . yamu_role_label($role));
 }
 
 if (isset($_POST['activateRole'])) {
-    $role = carzo_normalize_role($_POST['role'] ?? 'customer');
-    $roleNotes = trim((string) ($_POST['activation_notes'] ?? ''));
-    $isSelfAdmin = (($_SESSION['admin']['user_id'] ?? 0) === $currentUserId) && carzo_is_admin_authenticated();
-
-    if ($role === 'admin' && !$isSelfAdmin) {
-        carzo_redirect_with_message('../role-activation.php', 'error', 'Admin role can only be assigned by an existing admin');
+    if (!yamu_current_user_has_assigned_role('customer')) {
+        yamu_redirect_with_message('../access-denied.php', 'error', 'Only customer accounts can request provider roles');
     }
 
-    $existingAssignments = carzo_fetch_user_roles(
+    if (yamu_is_admin_panel_role(yamu_current_user_role())) {
+        yamu_redirect_with_message('../role-switch.php', 'error', 'Switch to your customer role before requesting another role');
+    }
+
+    $role = yamu_normalize_role($_POST['role'] ?? 'customer');
+    $roleNotes = trim((string) ($_POST['activation_notes'] ?? ''));
+    $redirectPath = '../role-activation.php';
+
+    if (!in_array($role, ['driver', 'staff'], true)) {
+        yamu_redirect_with_message($redirectPath, 'error', 'Selected role cannot be activated from this page');
+    }
+
+    $existingAssignments = yamu_fetch_user_roles(
         $conn,
         $currentUserId,
         $_SESSION['user']['primary_role'] ?? $_SESSION['user']['role'] ?? 'customer',
@@ -41,66 +50,116 @@ if (isset($_POST['activateRole'])) {
     );
 
     if (isset($existingAssignments[$role])) {
-        carzo_redirect_with_message('../role-activation.php', 'error', 'This role is already assigned to your account');
+        yamu_redirect_with_message($redirectPath, 'error', 'This role is already assigned to your account');
     }
 
-    $roleStatus = carzo_default_account_status_for_role($role);
-    $verificationStatus = carzo_default_verification_status_for_role($role);
+    $roleStatus = yamu_default_account_status_for_role($role);
+    $verificationStatus = yamu_default_verification_status_for_role($role);
+    $userRow = yamu_fetch_user_by_id($conn, $currentUserId);
 
-    if (!carzo_upsert_user_role_assignment($conn, $currentUserId, $role, $roleStatus, $verificationStatus, false, $currentUserId, $roleNotes)) {
-        carzo_redirect_with_message('../role-activation.php', 'error', 'Unable to activate role at the moment');
+    if (!$userRow) {
+        yamu_redirect_with_message('../signin.php', 'error', 'User account not found');
     }
 
-    $userRow = carzo_fetch_user_by_id($conn, $currentUserId);
-    carzo_ensure_role_profile_row($conn, $currentUserId, $role, $userRow);
-
-    if ($role === 'driver' && carzo_table_exists($conn, 'driver_profiles')) {
-        $licenseNumber = trim((string) ($_POST['driving_license_number'] ?? ''));
+    if ($role === 'driver') {
+        $drivingLicenseNumber = trim((string) ($_POST['driving_license_number'] ?? ''));
         $licenseExpiryDate = trim((string) ($_POST['license_expiry_date'] ?? ''));
         $nicId = trim((string) ($_POST['nic_id'] ?? ''));
         $serviceArea = trim((string) ($_POST['service_area'] ?? ''));
+        $providerDetails = trim((string) ($_POST['provider_details'] ?? ''));
 
-        $stmt = $conn->prepare(
-            'UPDATE driver_profiles
-             SET driving_license_number = ?, license_expiry_date = ?, nic_id = ?, service_area = ?, verification_status = ?, updated_at = NOW()
-             WHERE user_id = ?'
-        );
+        if ($drivingLicenseNumber === '' || $nicId === '' || $serviceArea === '' || $providerDetails === '') {
+            yamu_redirect_with_message($redirectPath, 'error', 'Please complete all required driver application details');
+        }
+    }
+
+    if ($role === 'staff') {
+        $storeName = trim((string) ($_POST['store_name'] ?? ''));
+        $storeOwner = trim((string) ($_POST['store_owner'] ?? ($userRow['full_name'] ?? '')));
+        $businessRegistrationNumber = trim((string) ($_POST['business_registration_number'] ?? ''));
+        $storeAddress = trim((string) ($_POST['store_address'] ?? ($userRow['address'] ?? '')));
+        $storeContactNumber = trim((string) ($_POST['store_contact_number'] ?? ($userRow['phone'] ?? '')));
+        $storeEmail = trim((string) ($_POST['store_email'] ?? ($userRow['email'] ?? '')));
+
+        if (
+            $storeName === ''
+            || $storeOwner === ''
+            || $businessRegistrationNumber === ''
+            || $storeAddress === ''
+            || $storeContactNumber === ''
+            || $storeEmail === ''
+        ) {
+            yamu_redirect_with_message($redirectPath, 'error', 'Please complete all required staff application details');
+        }
+
+        if (!filter_var($storeEmail, FILTER_VALIDATE_EMAIL)) {
+            yamu_redirect_with_message($redirectPath, 'error', 'Please enter a valid store email address');
+        }
+    }
+
+    if (!yamu_upsert_user_role_assignment($conn, $currentUserId, $role, $roleStatus, $verificationStatus, false, null, $roleNotes)) {
+        yamu_redirect_with_message($redirectPath, 'error', 'Unable to activate role at the moment');
+    }
+
+    yamu_ensure_role_profile_row($conn, $currentUserId, $role, $userRow);
+    yamu_sync_user_primary_role_snapshot($conn, $currentUserId);
+
+    if ($role === 'driver' && yamu_table_exists($conn, 'driver_profiles')) {
+        $drivingLicenseNumber = trim((string) ($_POST['driving_license_number'] ?? ''));
+        $licenseExpiryDate = trim((string) ($_POST['license_expiry_date'] ?? ''));
+        $nicId = trim((string) ($_POST['nic_id'] ?? ''));
+        $serviceArea = trim((string) ($_POST['service_area'] ?? ''));
+        $providerDetails = trim((string) ($_POST['provider_details'] ?? ''));
+        $hasProviderDetails = yamu_table_has_column($conn, 'driver_profiles', 'provider_details');
+
+        $sql = $hasProviderDetails
+            ? 'UPDATE driver_profiles
+               SET driving_license_number = ?, license_expiry_date = ?, nic_id = ?, service_area = ?, provider_details = ?, verification_status = ?, verified_at = NULL, updated_at = NOW()
+               WHERE user_id = ?'
+            : 'UPDATE driver_profiles
+               SET driving_license_number = ?, license_expiry_date = ?, nic_id = ?, service_area = ?, verification_status = ?, verified_at = NULL, updated_at = NOW()
+               WHERE user_id = ?';
+        $stmt = $conn->prepare($sql);
 
         if ($stmt) {
-            $stmt->bind_param('sssssi', $licenseNumber, $licenseExpiryDate, $nicId, $serviceArea, $verificationStatus, $currentUserId);
+            if ($hasProviderDetails) {
+                $stmt->bind_param('ssssssi', $drivingLicenseNumber, $licenseExpiryDate, $nicId, $serviceArea, $providerDetails, $verificationStatus, $currentUserId);
+            } else {
+                $stmt->bind_param('sssssi', $drivingLicenseNumber, $licenseExpiryDate, $nicId, $serviceArea, $verificationStatus, $currentUserId);
+            }
             $stmt->execute();
             $stmt->close();
         }
     }
 
-    if ($role === 'staff' && carzo_table_exists($conn, 'staff_profiles')) {
+    if ($role === 'staff' && yamu_table_exists($conn, 'staff_profiles')) {
         $storeName = trim((string) ($_POST['store_name'] ?? ''));
-        $storeOwner = trim((string) ($_POST['store_owner'] ?? ''));
-        $businessRegNo = trim((string) ($_POST['business_registration_number'] ?? ''));
-        $storeAddress = trim((string) ($_POST['store_address'] ?? ''));
-        $storeContact = trim((string) ($_POST['store_contact_number'] ?? ''));
-        $storeEmail = trim((string) ($_POST['store_email'] ?? ''));
+        $storeOwner = trim((string) ($_POST['store_owner'] ?? ($userRow['full_name'] ?? '')));
+        $businessRegistrationNumber = trim((string) ($_POST['business_registration_number'] ?? ''));
+        $storeAddress = trim((string) ($_POST['store_address'] ?? ($userRow['address'] ?? '')));
+        $storeContactNumber = trim((string) ($_POST['store_contact_number'] ?? ($userRow['phone'] ?? '')));
+        $storeEmail = trim((string) ($_POST['store_email'] ?? ($userRow['email'] ?? '')));
 
         $stmt = $conn->prepare(
             'UPDATE staff_profiles
-             SET store_name = ?, store_owner = ?, business_registration_number = ?, store_address = ?, store_contact_number = ?, store_email = ?, verification_status = ?, updated_at = NOW()
+             SET store_name = ?, store_owner = ?, business_registration_number = ?, store_address = ?, store_contact_number = ?, store_email = ?, verification_status = ?, verified_at = NULL, updated_at = NOW()
              WHERE user_id = ?'
         );
 
         if ($stmt) {
-            $stmt->bind_param('sssssssi', $storeName, $storeOwner, $businessRegNo, $storeAddress, $storeContact, $storeEmail, $verificationStatus, $currentUserId);
+            $stmt->bind_param('sssssssi', $storeName, $storeOwner, $businessRegistrationNumber, $storeAddress, $storeContactNumber, $storeEmail, $verificationStatus, $currentUserId);
             $stmt->execute();
             $stmt->close();
         }
     }
 
-    carzo_refresh_user_session($conn, $currentUserId, carzo_current_user_role());
+    yamu_refresh_user_session($conn, $currentUserId, yamu_current_user_role());
 
     $message = in_array($role, ['driver', 'staff'], true)
-        ? carzo_role_label($role) . ' role request submitted. Verification is pending.'
-        : carzo_role_label($role) . ' role activated successfully.';
+        ? yamu_role_label($role) . ' role request submitted. You can complete your onboarding while verification is pending.'
+        : yamu_role_label($role) . ' role activated successfully.';
 
-    carzo_redirect_with_message('../role-switch.php', 'msg', $message);
+    yamu_redirect_with_message('../role-switch.php', 'msg', $message);
 }
 
-carzo_redirect_with_message($fallbackRedirect, 'error', 'Invalid role management request');
+yamu_redirect_with_message('../role-switch.php', 'error', 'Invalid role management request');

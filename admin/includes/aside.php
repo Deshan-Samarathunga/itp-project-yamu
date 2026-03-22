@@ -5,11 +5,11 @@
             <img class="logo" src="../assets/images/logo/logo-full.png" alt="logo">
             <div class="user-info-box">
                 <div class="user-info-pic">
-                <img src="../assets/images/uploads/avatar/<?php echo carzo_e($_SESSION['admin']['avatar']) ?>" alt="avatar">
+                <img src="../assets/images/uploads/avatar/<?php echo yamu_e($_SESSION['admin']['avatar']) ?>" alt="avatar">
                 </div>
                 <div class="user-info-title">
-                    <h3><?php echo carzo_e($_SESSION['admin']['name']) ?></h3>
-                    <span><?php echo ucfirst(carzo_e($_SESSION['admin']['role'] ?? 'admin')); ?></span>
+                    <h3><?php echo yamu_e($_SESSION['admin']['name']) ?></h3>
+                    <span><?php echo ucfirst(yamu_e($_SESSION['admin']['role'] ?? 'admin')); ?></span>
                 </div>
             </div>
             <div class="sidenav-list">

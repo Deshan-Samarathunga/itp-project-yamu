@@ -1,14 +1,14 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/payment-management.php';
-carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
+yamu_start_session();
+yamu_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "Booking Payment";
 include 'includes/config.php';
 
 $customerId = (int) ($_SESSION['user']['user_ID'] ?? 0);
 $bookingId = isset($_GET['booking_id']) ? (int) $_GET['booking_id'] : 0;
-$sql = "SELECT b.*, v.vehicle_title, v.vehicle_brand
+$sql = "SELECT b.*, COALESCE(v.vehicle_title, 'Driver Service') AS service_name, v.vehicle_brand
         FROM booking b
         LEFT JOIN vehicles v ON v.vehicle_id = b.vehicle_ID
         WHERE b.booking_id = {$bookingId}
@@ -18,11 +18,11 @@ $result = mysqli_query($conn, $sql);
 $booking = ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 
 if (!$booking) {
-    carzo_redirect_with_message('my-booking.php', 'error', 'Booking not found');
+    yamu_redirect_with_message('my-booking.php', 'error', 'Booking not found');
 }
 
-if (carzo_booking_normalize_payment_status($booking['payment_status'] ?? 'pending') === 'paid') {
-    carzo_redirect_with_message('payment-history.php', 'error', 'This booking is already paid');
+if (yamu_booking_normalize_payment_status($booking['payment_status'] ?? 'pending') === 'paid') {
+    yamu_redirect_with_message('payment-history.php', 'error', 'This booking is already paid');
 }
 
 $promotionSql = "SELECT p.*, v.vehicle_title AS applicable_vehicle_title
@@ -48,25 +48,25 @@ $promotionResult = mysqli_query($conn, $promotionSql);
                 <h3>Pay For Booking</h3>
                 <div class="form-group">
                     <label>Booking No.</label>
-                    <input type="text" value="<?php echo carzo_e($booking['booking_No']); ?>" readonly>
+                    <input type="text" value="<?php echo yamu_e($booking['booking_No']); ?>" readonly>
                 </div>
                 <div class="form-group">
-                    <label>Vehicle</label>
-                    <input type="text" value="<?php echo carzo_e($booking['vehicle_title']); ?>" readonly>
+                    <label>Service</label>
+                    <input type="text" value="<?php echo yamu_e($booking['service_name']); ?>" readonly>
                 </div>
                 <div class="form-group">
                     <label>Booking Status</label>
-                    <input type="text" value="<?php echo carzo_e(ucfirst($booking['booking_status'])); ?>" readonly>
+                    <input type="text" value="<?php echo yamu_e(ucfirst($booking['booking_status'])); ?>" readonly>
                 </div>
                 <div class="form-group">
                     <label>Original Total</label>
-                    <input type="text" value="Rs. <?php echo carzo_money($booking['total']); ?>" readonly>
+                    <input type="text" value="Rs. <?php echo yamu_money($booking['total']); ?>" readonly>
                 </div>
                 <form action="includes/payment-process.php" method="POST" class="signup-form">
                     <input type="hidden" name="booking_id" value="<?php echo (int) $booking['booking_id']; ?>">
                     <div class="form-group">
                         <label for="promo_code">Promo Code</label>
-                        <input type="text" name="promo_code" id="promo_code" value="<?php echo carzo_e($booking['promo_code']); ?>" placeholder="Optional promo code">
+                        <input type="text" name="promo_code" id="promo_code" value="<?php echo yamu_e($booking['promo_code']); ?>" placeholder="Optional promo code">
                     </div>
                     <div class="form-group">
                         <label for="payment_method">Payment Method</label>
@@ -95,11 +95,11 @@ $promotionResult = mysqli_query($conn, $promotionSql);
                         <?php if ($promotionResult && mysqli_num_rows($promotionResult) > 0) {
                             while ($row = mysqli_fetch_assoc($promotionResult)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['code']); ?></td>
-                                    <td><?php echo carzo_e($row['title']); ?></td>
-                                    <td><?php echo carzo_e($row['discount_type'] === 'percentage' ? carzo_money($row['discount_value']) . '%' : 'Rs. ' . carzo_money($row['discount_value'])); ?></td>
-                                    <td><?php echo carzo_e($row['valid_to']); ?></td>
-                                    <td><?php echo carzo_e($row['applicable_vehicle_title'] ?: 'All vehicles'); ?></td>
+                                    <td><?php echo yamu_e($row['code']); ?></td>
+                                    <td><?php echo yamu_e($row['title']); ?></td>
+                                    <td><?php echo yamu_e($row['discount_type'] === 'percentage' ? yamu_money($row['discount_value']) . '%' : 'Rs. ' . yamu_money($row['discount_value'])); ?></td>
+                                    <td><?php echo yamu_e($row['valid_to']); ?></td>
+                                    <td><?php echo yamu_e($row['applicable_vehicle_title'] ?: 'All vehicles'); ?></td>
                                 </tr>
                             <?php }
                         } else { ?>

@@ -1,16 +1,16 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
     require_once __DIR__ . '/../includes/vehicle-management.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     include 'includes/config.php';
     $page_title = "Vehicles-Edit";
 
     $vehicleId = isset($_GET['vehicle_id']) ? (int) $_GET['vehicle_id'] : 0;
-    $vehicle = carzo_vehicle_fetch($conn, $vehicleId);
+    $vehicle = yamu_vehicle_fetch($conn, $vehicleId);
 
     if (!$vehicle) {
-        carzo_redirect_with_message('vehicle.php', 'error', 'Vehicle not found');
+        yamu_redirect_with_message('vehicle.php', 'error', 'Vehicle not found');
     }
 
     $brandResult = mysqli_query($conn, "SELECT * FROM brands WHERE brand_status = 1 ORDER BY brand_name ASC");
@@ -41,40 +41,40 @@
                             <select name="owner_user_id" id="owner_user_id" required>
                                 <?php while ($ownerResult && $owner = mysqli_fetch_assoc($ownerResult)) { ?>
                                     <option value="<?php echo $owner['user_id']; ?>" <?php echo ((int) $vehicle['owner_user_id'] === (int) $owner['user_id']) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>
+                                        <?php echo yamu_e($owner['full_name'] . ' (' . ucfirst($owner['role']) . ') - ' . $owner['email']); ?>
                                     </option>
                                 <?php } ?>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="vehicleTitle">Vehicle Title:</label>
-                            <input type="text" name="vehicleTitle" value="<?php echo carzo_e($vehicle['vehicle_title']); ?>" id="vehicleTitle" required />
+                            <input type="text" name="vehicleTitle" value="<?php echo yamu_e($vehicle['vehicle_title']); ?>" id="vehicleTitle" required />
                         </div>
                         <div class="form-group">
                             <label for="vehicleDesc">Vehicle Overview:</label>
-                            <textarea name="vehicleDesc" id="vehicleDesc" cols="30" rows="5"><?php echo carzo_e($vehicle['vehicle_desc']); ?></textarea>
+                            <textarea name="vehicleDesc" id="vehicleDesc" cols="30" rows="5"><?php echo yamu_e($vehicle['vehicle_desc']); ?></textarea>
                         </div>
                         <div class="form-group">
                             <label for="vehicleBrand">Brand:</label>
                             <select name="vehicleBrand" id="vehicleBrand" required>
-                                <option value="<?php echo carzo_e($vehicle['vehicle_brand']); ?>"><?php echo carzo_e($vehicle['vehicle_brand']); ?></option>
+                                <option value="<?php echo yamu_e($vehicle['vehicle_brand']); ?>"><?php echo yamu_e($vehicle['vehicle_brand']); ?></option>
                                 <?php while ($brandResult && $brand = mysqli_fetch_assoc($brandResult)) { ?>
-                                    <option value="<?php echo carzo_e($brand['brand_name']); ?>"><?php echo carzo_e($brand['brand_name']); ?></option>
+                                    <option value="<?php echo yamu_e($brand['brand_name']); ?>"><?php echo yamu_e($brand['brand_name']); ?></option>
                                 <?php } ?>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="location">Location:</label>
-                            <input type="text" name="location" id="location" value="<?php echo carzo_e($vehicle['location']); ?>" required />
+                            <input type="text" name="location" id="location" value="<?php echo yamu_e($vehicle['location']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="registration_number">Registration No:</label>
-                            <input type="text" name="registration_number" id="registration_number" value="<?php echo carzo_e($vehicle['registration_number']); ?>" required />
+                            <input type="text" name="registration_number" id="registration_number" value="<?php echo yamu_e($vehicle['registration_number']); ?>" required />
                         </div>
                         <div class="form-group">
                             <label for="transmission">Transmission:</label>
                             <select name="transmission" id="transmission" required>
-                                <option value="<?php echo carzo_e($vehicle['transmission']); ?>"><?php echo carzo_e($vehicle['transmission']); ?></option>
+                                <option value="<?php echo yamu_e($vehicle['transmission']); ?>"><?php echo yamu_e($vehicle['transmission']); ?></option>
                                 <option value="Automatic">Automatic</option>
                                 <option value="Manual">Manual</option>
                             </select>
@@ -82,7 +82,7 @@
                         <div class="form-group">
                             <label for="fuelType">Fuel Type:</label>
                             <select name="fuelType" id="fuelType" required>
-                                <option value="<?php echo carzo_e($vehicle['fuel_type']); ?>"><?php echo carzo_e($vehicle['fuel_type']); ?></option>
+                                <option value="<?php echo yamu_e($vehicle['fuel_type']); ?>"><?php echo yamu_e($vehicle['fuel_type']); ?></option>
                                 <option value="Diesel">Diesel</option>
                                 <option value="Petrol">Petrol</option>
                                 <option value="Electric">Electric</option>
@@ -92,19 +92,19 @@
                         </div>
                         <div class="form-group">
                             <label for="modelYear">Model Year:</label>
-                            <input type="number" name="modelYear" value="<?php echo carzo_e($vehicle['year']); ?>" id="modelYear" required />
+                            <input type="number" name="modelYear" value="<?php echo yamu_e($vehicle['year']); ?>" id="modelYear" required />
                         </div>
                         <div class="form-group">
                             <label for="engineCap">Engine Capacity (CC):</label>
-                            <input type="number" name="engineCap" value="<?php echo carzo_e($vehicle['engine_capacity']); ?>" id="engineCap" required />
+                            <input type="number" name="engineCap" value="<?php echo yamu_e($vehicle['engine_capacity']); ?>" id="engineCap" required />
                         </div>
                         <div class="form-group">
                             <label for="capacity">Seat Capacity:</label>
-                            <input type="number" name="capacity" value="<?php echo carzo_e($vehicle['capacity']); ?>" id="capacity" required />
+                            <input type="number" name="capacity" value="<?php echo yamu_e($vehicle['capacity']); ?>" id="capacity" required />
                         </div>
                         <div class="form-group">
                             <label for="price">Daily Price:</label>
-                            <input type="number" step="0.01" name="price" value="<?php echo carzo_e($vehicle['price']); ?>" id="price" required />
+                            <input type="number" step="0.01" name="price" value="<?php echo yamu_e($vehicle['price']); ?>" id="price" required />
                         </div>
                         <div class="form-group">
                             <label for="listing_status">Listing Status:</label>
@@ -134,19 +134,19 @@
                         </div>
                         <div class="form-group">
                             <label for="service_date">Service Date:</label>
-                            <input type="date" name="service_date" id="service_date" value="<?php echo carzo_e($vehicle['service_date']); ?>" />
+                            <input type="date" name="service_date" id="service_date" value="<?php echo yamu_e($vehicle['service_date']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="next_service_date">Next Service Date:</label>
-                            <input type="date" name="next_service_date" id="next_service_date" value="<?php echo carzo_e($vehicle['next_service_date']); ?>" />
+                            <input type="date" name="next_service_date" id="next_service_date" value="<?php echo yamu_e($vehicle['next_service_date']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="service_cost">Service Cost:</label>
-                            <input type="number" step="0.01" name="service_cost" id="service_cost" value="<?php echo carzo_e($vehicle['service_cost']); ?>" />
+                            <input type="number" step="0.01" name="service_cost" id="service_cost" value="<?php echo yamu_e($vehicle['service_cost']); ?>" />
                         </div>
                         <div class="form-group">
                             <label for="service_notes">Service Notes:</label>
-                            <textarea name="service_notes" id="service_notes"><?php echo carzo_e($vehicle['service_notes']); ?></textarea>
+                            <textarea name="service_notes" id="service_notes"><?php echo yamu_e($vehicle['service_notes']); ?></textarea>
                         </div>
 
                         <p>Vehicle Features</p>

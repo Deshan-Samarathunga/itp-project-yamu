@@ -1,8 +1,17 @@
 <?php
 $page_title = "Book Your Car";
 require_once __DIR__ . '/includes/auth.php';
-carzo_start_session();
+yamu_start_session();
 include 'includes/config.php'; // Database Connection
+$hasUserRolesTable = yamu_table_exists($conn, 'user_roles');
+$staffRoleJoin = $hasUserRolesTable
+    ? "INNER JOIN user_roles ur_staff
+         ON ur_staff.user_id = v.owner_user_id
+        AND ur_staff.role_key = 'staff'
+        AND ur_staff.role_status IN ('active', 'verified')
+        AND ur_staff.verification_status IN ('approved', 'verified')"
+    : '';
+$staffVisibilityWhere = $hasUserRolesTable ? '' : "AND u.role = 'staff' AND u.account_status = 'active'";
 
 ?>
 
@@ -32,8 +41,10 @@ include 'includes/config.php'; // Database Connection
         $sql = "SELECT v.*, u.full_name AS owner_name, u.phone AS owner_phone
                 FROM vehicles v
                 LEFT JOIN users u ON u.user_id = v.owner_user_id
+                {$staffRoleJoin}
                 WHERE v.vehicle_id = {$vehicleID}
                   AND v.listing_status = 'approved'
+                  {$staffVisibilityWhere}
                 LIMIT 1";
         $result = mysqli_query($conn, $sql);
 
@@ -46,11 +57,11 @@ include 'includes/config.php'; // Database Connection
             <!-- Page Banner Section -->
             <section class="banner-page">
                 <h2>
-                    <?php echo carzo_e($record['vehicle_title']); ?>
+                    <?php echo yamu_e($record['vehicle_title']); ?>
                 </h2>
                 <div class="banner-link">
                     <a href="index.php">Home</a> &gt; <a href="car-listing.php">Vehicle Listing</a> &gt; <a href="#">
-                        <?php echo carzo_e($record['vehicle_title']); ?>
+                        <?php echo yamu_e($record['vehicle_title']); ?>
                     </a>
                 </div>
             </section>
@@ -104,58 +115,58 @@ include 'includes/config.php'; // Database Connection
                                 <tr>
                                     <td>Brand:</td>
                                     <th>
-                                        <?php echo carzo_e($record['vehicle_brand']); ?>
+                                        <?php echo yamu_e($record['vehicle_brand']); ?>
                                     </th>
                                     <td>Model:</td>
                                     <th>
-                                        <?php echo carzo_e($record['vehicle_title']); ?>
+                                        <?php echo yamu_e($record['vehicle_title']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                     <td>Fuel Type:</td>
                                     <th>
-                                        <?php echo carzo_e($record['fuel_type']); ?>
+                                        <?php echo yamu_e($record['fuel_type']); ?>
                                     </th>
                                     <td>Year:</td>
                                     <th>
-                                        <?php echo carzo_e($record['year']); ?>
+                                        <?php echo yamu_e($record['year']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                 <td>Transmission:</td>
                                     <th>
-                                        <?php echo carzo_e($record['transmission']); ?>
+                                        <?php echo yamu_e($record['transmission']); ?>
                                     </th>
                                     <td>Engine:</td>
                                     <th>
-                                        <?php echo carzo_e($record['engine_capacity']); ?>
+                                        <?php echo yamu_e($record['engine_capacity']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                     <td>Seats:</td>
                                     <th>
-                                        <?php echo carzo_e($record['capacity']); ?>
+                                        <?php echo yamu_e($record['capacity']); ?>
                                     </th>
                                     <td>Location:</td>
                                     <th>
-                                        <?php echo carzo_e($record['location']); ?>
+                                        <?php echo yamu_e($record['location']); ?>
                                     </th>
                                 </tr>
                                 <tr>
                                     <td>Availability:</td>
                                     <th>
-                                        <?php echo carzo_e(ucfirst($record['availability_status'])); ?>
+                                        <?php echo yamu_e(ucfirst($record['availability_status'])); ?>
                                     </th>
                                     <td>Owner Contact:</td>
                                     <th>
-                                        <?php echo carzo_e($record['owner_phone']); ?>
+                                        <?php echo yamu_e($record['owner_phone']); ?>
                                     </th>
                                 </tr>
                             </table>
 
                             <h3>Vehicle Description</h3>
                             <p>
-                                <?php echo carzo_e($record['vehicle_desc']); ?>
+                                <?php echo yamu_e($record['vehicle_desc']); ?>
                             </p>
                             <br>
 
@@ -262,16 +273,17 @@ include 'includes/config.php'; // Database Connection
                             <div class="booking-card">
                                 <div class="booking-card-title">
                                     <h3>Rs <h3 id="pricePerDay">
-                                            <?php echo carzo_e($record['price']); ?>
+                                            <?php echo yamu_e($record['price']); ?>
                                         </h3> <span>/ Day</span></h3>
                                 </div>
                                 <div class="booking-card-body">
                                     <h3>Booking this car</h3>
                                     <p>
-                                        Availability: <strong><?php echo carzo_e(ucfirst($record['availability_status'])); ?></strong><br>
-                                        Maintenance: <strong><?php echo carzo_e(ucfirst($record['maintenance_status'])); ?></strong>
+                                        Availability: <strong><?php echo yamu_e(ucfirst($record['availability_status'])); ?></strong><br>
+                                        Maintenance: <strong><?php echo yamu_e(ucfirst($record['maintenance_status'])); ?></strong>
                                     </p>
                                     <form action="includes/booking-process.php" method="POST" class="booking-form">
+                                        <input type="hidden" name="service_type" value="vehicle">
                                         <div class="form-group">
                                             <label for="startDate">Start Date:</label>
                                             <input type="date" name="startDate" id="startDate" required <?php echo $isBookable ? '' : 'disabled'; ?> />
@@ -287,21 +299,22 @@ include 'includes/config.php'; // Database Connection
 
                                         <?php if (!$isBookable) { ?>
                                             <p>This vehicle is not available for booking right now.</p>
-                                        <?php } elseif (carzo_is_user_authenticated() && carzo_current_user_role() === 'customer' && ($_SESSION['user']['account_status'] ?? 'active') === 'active') { ?>
-                                            <!-- Additional data -->
-                                            <input type="hidden" value="<?php echo (int) $_SESSION['user']['user_ID']; ?>" name="userID">
+                                        <?php } elseif (yamu_is_user_authenticated() && yamu_current_user_role() === 'customer' && in_array(yamu_current_user_role_status(), ['active', 'verified'], true)) { ?>
                                             <input type="hidden" id="vehicleID" name="vehicleID" value="<?php echo (int) $record['vehicle_id']; ?>">
                                             <input type="hidden" id="priceInput" name="priceInput">
 
                                             <div class="form-group">
                                                 <input type="submit" value="Book Now" name="booking" class="btn main-btn" style="text-align: center; background: #F57C51;">
                                             </div>
-                                        <?php } elseif (carzo_is_admin_authenticated()) { ?>
+                                        <?php } elseif (yamu_is_admin_authenticated()) { ?>
                                             <p>Admin accounts manage bookings, listings, payments, and disputes from the admin dashboard.</p>
                                             <a href="admin/dashboard.php" class="btn main-btn" style="text-align: center;">Open Admin Dashboard</a>
-                                        <?php } elseif (carzo_is_user_authenticated() && carzo_current_user_role() === 'driver') { ?>
+                                        <?php } elseif (yamu_is_user_authenticated() && yamu_current_user_role() === 'driver') { ?>
                                             <p>Driver accounts can manage listings from the driver dashboard, but bookings must be placed through a customer account.</p>
                                             <a href="driver-dashboard.php" class="btn main-btn" style="text-align: center;">Open Driver Dashboard</a>
+                                        <?php } elseif (yamu_is_user_authenticated() && yamu_current_user_role() === 'staff') { ?>
+                                            <p>Rental center accounts manage vehicle listings, but bookings must be placed through a customer account.</p>
+                                            <a href="staff-dashboard.php" class="btn main-btn" style="text-align: center;">Open Staff Dashboard</a>
                                         <?php } else { ?>
                                             <a href="signin.php" class="btn main-btn" style="text-align: center;">Login For Book</a>
                                         <?php } ?>

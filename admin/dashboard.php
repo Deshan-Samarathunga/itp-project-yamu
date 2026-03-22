@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     include 'includes/config.php'; // Database Connection   
     $page_title = "Dashboard"; 
 
@@ -104,7 +104,7 @@
                 <div class="overviewcard">
                     <div class="overviewcard-info">
                         <h3>Paid Revenue</h3>
-                        <span>Rs. <?php echo carzo_money($overviewMetrics['paid_revenue']); ?></span> 
+                        <span>Rs. <?php echo yamu_money($overviewMetrics['paid_revenue']); ?></span> 
                     </div>
                     <div class="overviewcard-icon">
                         <i class="ri-money-dollar-circle-line"></i>

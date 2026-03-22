@@ -1,9 +1,9 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
+    yamu_start_session();
 
-    if (carzo_is_admin_authenticated()) {
-        carzo_redirect('dashboard.php');
+    if (yamu_is_admin_authenticated()) {
+        yamu_redirect('dashboard.php');
     }
 
     $page_title = "Admin | Signin";

@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/auth.php';
-    carzo_start_session();
-    $signedInUser = carzo_current_user();
+    yamu_start_session();
+    $signedInUser = yamu_current_user();
     $signedInRole = $signedInUser['active_role'] ?? ($signedInUser['role'] ?? 'customer');
     $signedInRoles = $signedInUser['roles'] ?? [$signedInRole];
     $signedInAdmin = $_SESSION['admin'] ?? null;
@@ -67,16 +67,16 @@
                 </ul>
                 <ul class="sign-btn">
                     <?php
-                        if (carzo_is_admin_authenticated()) {
+                        if (yamu_is_admin_authenticated()) {
                             ?>
                                 <div class="login-menu subnav">
-                                    <span><?php echo carzo_e($signedInAdmin['username'] ?? 'admin'); ?></span>
+                                    <span><?php echo yamu_e($signedInAdmin['username'] ?? 'admin'); ?></span>
                                     <div class="avatar">
-                                        <img src="<?php echo carzo_e(carzo_profile_avatar_path($signedInAdmin['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
+                                        <img src="<?php echo yamu_e(yamu_profile_avatar_path($signedInAdmin['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
                                     </div>
                                     <ul class="subnav-content">
                                         <li><a href="admin/dashboard.php"><i class="ri-dashboard-line"></i> Admin Dashboard</a></li>
-                                        <?php if (carzo_is_user_authenticated()) { ?>
+                                        <?php if (yamu_is_user_authenticated()) { ?>
                                             <li><a href="choose-role.php"><i class="ri-user-search-line"></i> Choose Role</a></li>
                                             <li><a href="role-switch.php"><i class="ri-shuffle-line"></i> Role Switch</a></li>
                                         <?php } ?>
@@ -88,13 +88,13 @@
                                     </ul>
                                 </div>
                             <?php
-                        } elseif (carzo_is_user_authenticated()) {
+                        } elseif (yamu_is_user_authenticated()) {
                             // Display navbar for authenticated users
                             ?>
                                 <div class="login-menu subnav">
-                                    <span><?php echo carzo_e($signedInUser['username']); ?> (<?php echo carzo_e(carzo_role_label($signedInRole)); ?>)</span>
+                                    <span><?php echo yamu_e($signedInUser['username']); ?> (<?php echo yamu_e(yamu_role_label($signedInRole)); ?>)</span>
                                     <div class="avatar">
-                                        <img src="<?php echo carzo_e(carzo_profile_avatar_path($signedInUser['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
+                                        <img src="<?php echo yamu_e(yamu_profile_avatar_path($signedInUser['avatar'] ?? 'avatar.png')); ?>" alt="avatar">
                                     </div>
                                     <ul class="subnav-content">
                                         <?php if ($signedInRole === 'driver') { ?>
@@ -105,9 +105,16 @@
                                             <li><a href="driver-disputes.php"><i class="ri-chat-3-line"></i> Disputes</a></li>
                                             <li><a href="driver-earnings.php"><i class="ri-money-dollar-circle-line"></i> Earnings</a></li>
                                         <?php } ?>
+                                        <?php if ($signedInRole === 'staff') { ?>
+                                            <li><a href="staff-dashboard.php"><i class="ri-store-3-line"></i> Staff Dashboard</a></li>
+                                            <li><a href="staff-vehicles.php"><i class="ri-car-line"></i> Vehicle Listings</a></li>
+                                            <li><a href="staff-bookings.php"><i class="ri-bookmark-line"></i> Rental Bookings</a></li>
+                                        <?php } ?>
                                         <li><a href="choose-role.php"><i class="ri-user-search-line"></i> Choose Role</a></li>
                                         <li><a href="role-switch.php"><i class="ri-shuffle-line"></i> Role Switch</a></li>
-                                        <li><a href="role-activation.php"><i class="ri-user-add-line"></i> Activate Role</a></li>
+                                        <?php if (in_array('customer', $signedInRoles, true) && !yamu_is_admin_panel_role($signedInRole)) { ?>
+                                            <li><a href="role-activation.php"><i class="ri-user-add-line"></i> Apply For Role</a></li>
+                                        <?php } ?>
                                         <li><a href="my-profile.php"><i class="ri-user-line"></i> My Profile</a></li>
                                         <li><a href="edit-profile.php"><i class="ri-user-settings-line"></i> Edit Profile</a></li>
                                         <li><a href="update-password.php"><i class="ri-lock-line"></i> Change Password</a></li>

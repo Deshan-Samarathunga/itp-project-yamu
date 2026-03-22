@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/promotion-management.php';
-carzo_start_session();
+yamu_start_session();
 $page_title = "Promotions";
 include 'includes/config.php';
 
@@ -32,13 +32,13 @@ $result = mysqli_query($conn, $sql);
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
-                                <h4 class="card-title"><?php echo carzo_e($row['title']); ?></h4>
-                                <h5 class="card-title"><?php echo carzo_e($row['code']); ?></h5>
+                                <h4 class="card-title"><?php echo yamu_e($row['title']); ?></h4>
+                                <h5 class="card-title"><?php echo yamu_e($row['code']); ?></h5>
                             </div>
-                            <p><?php echo carzo_e($row['description']); ?></p>
-                            <p><strong>Discount:</strong> <?php echo carzo_e($row['discount_type'] === 'percentage' ? carzo_money($row['discount_value']) . '%' : 'Rs. ' . carzo_money($row['discount_value'])); ?></p>
-                            <p><strong>Valid:</strong> <?php echo carzo_e($row['valid_from']); ?> to <?php echo carzo_e($row['valid_to']); ?></p>
-                            <p><strong>Vehicle:</strong> <?php echo carzo_e($row['vehicle_title'] ?: 'All vehicles'); ?></p>
+                            <p><?php echo yamu_e($row['description']); ?></p>
+                            <p><strong>Discount:</strong> <?php echo yamu_e($row['discount_type'] === 'percentage' ? yamu_money($row['discount_value']) . '%' : 'Rs. ' . yamu_money($row['discount_value'])); ?></p>
+                            <p><strong>Valid:</strong> <?php echo yamu_e($row['valid_from']); ?> to <?php echo yamu_e($row['valid_to']); ?></p>
+                            <p><strong>Vehicle:</strong> <?php echo yamu_e($row['vehicle_title'] ?: 'All vehicles'); ?></p>
                             <p><strong>Usage:</strong> <?php echo (int) $row['usage_count']; ?> / <?php echo (int) ($row['usage_limit'] ?: 0); ?></p>
                         </div>
                     </div>

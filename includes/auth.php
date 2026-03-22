@@ -1,35 +1,35 @@
 <?php
 
-function carzo_start_session()
+function yamu_start_session()
 {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
 }
 
-function carzo_append_query_value($path, $key, $value)
+function yamu_append_query_value($path, $key, $value)
 {
     $separator = strpos($path, '?') === false ? '?' : '&';
     return $path . $separator . $key . '=' . urlencode($value);
 }
 
-function carzo_redirect($path)
+function yamu_redirect($path)
 {
     header('Location: ' . $path);
     exit();
 }
 
-function carzo_redirect_with_message($path, $type, $message)
+function yamu_redirect_with_message($path, $type, $message)
 {
-    carzo_redirect(carzo_append_query_value($path, $type, $message));
+    yamu_redirect(yamu_append_query_value($path, $type, $message));
 }
 
-function carzo_hash_password($password)
+function yamu_hash_password($password)
 {
     return password_hash((string) $password, PASSWORD_DEFAULT);
 }
 
-function carzo_password_matches($plainPassword, $storedPassword)
+function yamu_password_matches($plainPassword, $storedPassword)
 {
     if ($storedPassword === null || $storedPassword === '') {
         return false;
@@ -42,7 +42,7 @@ function carzo_password_matches($plainPassword, $storedPassword)
     return hash_equals(strtolower((string) $storedPassword), md5((string) $plainPassword));
 }
 
-function carzo_password_needs_rehash_upgrade($storedPassword)
+function yamu_password_needs_rehash_upgrade($storedPassword)
 {
     if ($storedPassword === null || $storedPassword === '') {
         return true;
@@ -55,7 +55,7 @@ function carzo_password_needs_rehash_upgrade($storedPassword)
     return true;
 }
 
-function carzo_password_appears_truncated($storedPassword)
+function yamu_password_appears_truncated($storedPassword)
 {
     $storedPassword = (string) $storedPassword;
 
@@ -74,22 +74,22 @@ function carzo_password_appears_truncated($storedPassword)
     return false;
 }
 
-function carzo_escape($conn, $value)
+function yamu_escape($conn, $value)
 {
     return mysqli_real_escape_string($conn, trim((string) $value));
 }
 
-function carzo_e($value)
+function yamu_e($value)
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-function carzo_money($amount)
+function yamu_money($amount)
 {
     return number_format((float) $amount, 2);
 }
 
-function carzo_normalize_role($role)
+function yamu_normalize_role($role)
 {
     $role = strtolower(trim((string) $role));
     $allowedRoles = ['admin', 'staff', 'driver', 'customer'];
@@ -97,58 +97,108 @@ function carzo_normalize_role($role)
     return in_array($role, $allowedRoles, true) ? $role : 'customer';
 }
 
-function carzo_role_label($role)
+function yamu_role_label($role)
 {
-    return ucfirst(carzo_normalize_role($role));
+    return ucfirst(yamu_normalize_role($role));
 }
 
-function carzo_default_account_status_for_role($role)
+function yamu_default_account_status_for_role($role)
 {
-    $role = carzo_normalize_role($role);
+    $role = yamu_normalize_role($role);
     return in_array($role, ['driver', 'staff'], true) ? 'pending' : 'active';
 }
 
-function carzo_default_verification_status_for_role($role)
+function yamu_default_verification_status_for_role($role)
 {
-    $role = carzo_normalize_role($role);
+    $role = yamu_normalize_role($role);
     return in_array($role, ['driver', 'staff'], true) ? 'pending' : 'verified';
 }
 
-function carzo_is_admin_panel_role($role)
+function yamu_is_admin_role($role)
 {
-    return in_array(carzo_normalize_role($role), ['admin', 'staff'], true);
+    return yamu_normalize_role($role) === 'admin';
 }
 
-function carzo_normalize_account_status($status, $role = 'customer')
+function yamu_is_admin_panel_role($role)
+{
+    return yamu_is_admin_role($role);
+}
+
+function yamu_normalize_account_status($status, $role = 'customer')
 {
     $status = strtolower(trim((string) $status));
     $allowedStatuses = ['active', 'pending', 'verified', 'suspended', 'rejected', 'deactivated'];
 
     if (!in_array($status, $allowedStatuses, true)) {
-        return carzo_default_account_status_for_role($role);
+        return yamu_default_account_status_for_role($role);
     }
 
     return $status;
 }
 
-function carzo_normalize_role_status($status, $role = 'customer')
+function yamu_normalize_role_status($status, $role = 'customer')
 {
-    return carzo_normalize_account_status($status, $role);
+    return yamu_normalize_account_status($status, $role);
 }
 
-function carzo_normalize_verification_status($status, $role = 'customer')
+function yamu_normalize_verification_status($status, $role = 'customer')
 {
     $status = strtolower(trim((string) $status));
     $allowedStatuses = ['unverified', 'pending', 'approved', 'rejected', 'verified'];
 
     if (!in_array($status, $allowedStatuses, true)) {
-        return carzo_default_verification_status_for_role($role);
+        return yamu_default_verification_status_for_role($role);
     }
 
     return $status;
 }
 
-function carzo_table_exists($conn, $tableName)
+function yamu_is_role_pending($status)
+{
+    return yamu_normalize_role_status($status) === 'pending';
+}
+
+function yamu_role_allows_onboarding_status($status)
+{
+    return yamu_can_access_role_status($status, ['active', 'pending', 'verified']);
+}
+
+function yamu_role_allows_standard_status($status)
+{
+    return yamu_can_access_role_status($status, ['active', 'verified']);
+}
+
+function yamu_resolve_role_status_from_verification($role, $verificationStatus, $fallbackStatus = null)
+{
+    $role = yamu_normalize_role($role);
+    $verificationStatus = yamu_normalize_verification_status($verificationStatus, $role);
+
+    if ($fallbackStatus !== null) {
+        $normalizedFallback = yamu_normalize_role_status($fallbackStatus, $role);
+
+        if (yamu_is_role_blocked($normalizedFallback)) {
+            return $normalizedFallback;
+        }
+    }
+
+    if ($verificationStatus === 'rejected') {
+        return 'rejected';
+    }
+
+    if (in_array($role, ['driver', 'staff'], true) && in_array($verificationStatus, ['pending', 'unverified'], true)) {
+        return 'pending';
+    }
+
+    if ($verificationStatus === 'approved' || $verificationStatus === 'verified') {
+        return 'active';
+    }
+
+    return $fallbackStatus !== null
+        ? yamu_normalize_role_status($fallbackStatus, $role)
+        : yamu_default_account_status_for_role($role);
+}
+
+function yamu_table_exists($conn, $tableName)
 {
     static $cache = [];
 
@@ -174,7 +224,34 @@ function carzo_table_exists($conn, $tableName)
     return $exists;
 }
 
-function carzo_fetch_available_roles($conn = null)
+function yamu_table_has_column($conn, $tableName, $columnName)
+{
+    static $cache = [];
+
+    if (!$conn || !yamu_table_exists($conn, $tableName)) {
+        return false;
+    }
+
+    $key = spl_object_hash($conn) . ':' . $tableName . ':' . $columnName;
+
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+
+    $escapedTable = mysqli_real_escape_string($conn, (string) $tableName);
+    $escapedColumn = mysqli_real_escape_string($conn, (string) $columnName);
+    $result = @mysqli_query($conn, "SHOW COLUMNS FROM `{$escapedTable}` LIKE '{$escapedColumn}'");
+    $exists = $result instanceof mysqli_result && $result->num_rows > 0;
+
+    if ($result instanceof mysqli_result) {
+        $result->free();
+    }
+
+    $cache[$key] = $exists;
+    return $exists;
+}
+
+function yamu_fetch_available_roles($conn = null)
 {
     $defaults = [
         ['role_key' => 'customer', 'role_name' => 'Customer'],
@@ -183,7 +260,7 @@ function carzo_fetch_available_roles($conn = null)
         ['role_key' => 'admin', 'role_name' => 'Admin'],
     ];
 
-    if (!$conn || !carzo_table_exists($conn, 'roles')) {
+    if (!$conn || !yamu_table_exists($conn, 'roles')) {
         return $defaults;
     }
 
@@ -197,8 +274,8 @@ function carzo_fetch_available_roles($conn = null)
 
     while ($row = $result->fetch_assoc()) {
         $roles[] = [
-            'role_key' => carzo_normalize_role($row['role_key'] ?? 'customer'),
-            'role_name' => trim((string) ($row['role_name'] ?? carzo_role_label($row['role_key'] ?? 'customer'))),
+            'role_key' => yamu_normalize_role($row['role_key'] ?? 'customer'),
+            'role_name' => trim((string) ($row['role_name'] ?? yamu_role_label($row['role_key'] ?? 'customer'))),
         ];
     }
 
@@ -207,12 +284,12 @@ function carzo_fetch_available_roles($conn = null)
     return !empty($roles) ? $roles : $defaults;
 }
 
-function carzo_fetch_user_roles($conn, $userId, $fallbackRole = 'customer', $fallbackAccountStatus = 'active', $fallbackVerificationStatus = 'verified')
+function yamu_fetch_user_roles($conn, $userId, $fallbackRole = 'customer', $fallbackAccountStatus = 'active', $fallbackVerificationStatus = 'verified')
 {
     $assignments = [];
     $userId = (int) $userId;
 
-    if ($conn && $userId > 0 && carzo_table_exists($conn, 'user_roles')) {
+    if ($conn && $userId > 0 && yamu_table_exists($conn, 'user_roles')) {
         $stmt = $conn->prepare(
             'SELECT role_key, role_status, verification_status, is_primary
              FROM user_roles
@@ -227,11 +304,11 @@ function carzo_fetch_user_roles($conn, $userId, $fallbackRole = 'customer', $fal
 
             if ($result) {
                 while ($row = $result->fetch_assoc()) {
-                    $role = carzo_normalize_role($row['role_key'] ?? 'customer');
+                    $role = yamu_normalize_role($row['role_key'] ?? 'customer');
                     $assignments[$role] = [
                         'role' => $role,
-                        'role_status' => carzo_normalize_role_status($row['role_status'] ?? carzo_default_account_status_for_role($role), $role),
-                        'verification_status' => carzo_normalize_verification_status($row['verification_status'] ?? carzo_default_verification_status_for_role($role), $role),
+                        'role_status' => yamu_normalize_role_status($row['role_status'] ?? yamu_default_account_status_for_role($role), $role),
+                        'verification_status' => yamu_normalize_verification_status($row['verification_status'] ?? yamu_default_verification_status_for_role($role), $role),
                         'is_primary' => (int) ($row['is_primary'] ?? 0) === 1,
                     ];
                 }
@@ -245,71 +322,88 @@ function carzo_fetch_user_roles($conn, $userId, $fallbackRole = 'customer', $fal
         return $assignments;
     }
 
-    $role = carzo_normalize_role($fallbackRole);
+    $role = yamu_normalize_role($fallbackRole);
     $assignments[$role] = [
         'role' => $role,
-        'role_status' => carzo_normalize_role_status($fallbackAccountStatus, $role),
-        'verification_status' => carzo_normalize_verification_status($fallbackVerificationStatus, $role),
+        'role_status' => yamu_normalize_role_status($fallbackAccountStatus, $role),
+        'verification_status' => yamu_normalize_verification_status($fallbackVerificationStatus, $role),
         'is_primary' => true,
     ];
 
     return $assignments;
 }
 
-function carzo_get_user_role_assignment($roleAssignments, $role)
+function yamu_get_user_role_assignment($roleAssignments, $role)
 {
-    $role = carzo_normalize_role($role);
+    $role = yamu_normalize_role($role);
     $roleAssignments = is_array($roleAssignments) ? $roleAssignments : [];
     return $roleAssignments[$role] ?? null;
 }
 
-function carzo_pick_active_role(array $roleAssignments, $preferredRole = null)
+function yamu_pick_active_role(array $roleAssignments, $preferredRole = null)
 {
-    $preferredRole = carzo_normalize_role($preferredRole);
+    $preferredRole = yamu_normalize_role($preferredRole);
 
     if ($preferredRole && isset($roleAssignments[$preferredRole])) {
-        return $preferredRole;
-    }
-
-    foreach ($roleAssignments as $assignmentRole => $assignment) {
-        $status = carzo_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
-        if (!empty($assignment['is_primary']) && !carzo_is_role_blocked($status)) {
-            return carzo_normalize_role($assignmentRole);
+        $preferredStatus = yamu_normalize_role_status($roleAssignments[$preferredRole]['role_status'] ?? 'active', $preferredRole);
+        if (!yamu_is_role_blocked($preferredStatus)) {
+            return $preferredRole;
         }
     }
 
     foreach ($roleAssignments as $assignmentRole => $assignment) {
-        $status = carzo_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
-        if (in_array($status, ['active', 'pending', 'verified'], true)) {
-            return carzo_normalize_role($assignmentRole);
+        $status = yamu_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
+        if (!empty($assignment['is_primary']) && yamu_role_allows_standard_status($status)) {
+            return yamu_normalize_role($assignmentRole);
         }
     }
 
     foreach ($roleAssignments as $assignmentRole => $assignment) {
-        return carzo_normalize_role($assignmentRole);
+        $status = yamu_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
+        if (yamu_role_allows_standard_status($status)) {
+            return yamu_normalize_role($assignmentRole);
+        }
+    }
+
+    foreach ($roleAssignments as $assignmentRole => $assignment) {
+        $status = yamu_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
+        if (!empty($assignment['is_primary']) && !yamu_is_role_blocked($status)) {
+            return yamu_normalize_role($assignmentRole);
+        }
+    }
+
+    foreach ($roleAssignments as $assignmentRole => $assignment) {
+        $status = yamu_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
+        if (!yamu_is_role_blocked($status)) {
+            return yamu_normalize_role($assignmentRole);
+        }
+    }
+
+    foreach ($roleAssignments as $assignmentRole => $assignment) {
+        return yamu_normalize_role($assignmentRole);
     }
 
     return 'customer';
 }
 
-function carzo_build_user_session(array $row, array $roleAssignments = [], $preferredRole = null)
+function yamu_build_user_session(array $row, array $roleAssignments = [], $preferredRole = null)
 {
     if (empty($roleAssignments)) {
-        $fallbackRole = carzo_normalize_role($row['role'] ?? 'customer');
+        $fallbackRole = yamu_normalize_role($row['role'] ?? 'customer');
         $roleAssignments = [
             $fallbackRole => [
                 'role' => $fallbackRole,
-                'role_status' => carzo_normalize_role_status($row['account_status'] ?? carzo_default_account_status_for_role($fallbackRole), $fallbackRole),
-                'verification_status' => carzo_normalize_verification_status($row['verification_status'] ?? carzo_default_verification_status_for_role($fallbackRole), $fallbackRole),
+                'role_status' => yamu_normalize_role_status($row['account_status'] ?? yamu_default_account_status_for_role($fallbackRole), $fallbackRole),
+                'verification_status' => yamu_normalize_verification_status($row['verification_status'] ?? yamu_default_verification_status_for_role($fallbackRole), $fallbackRole),
                 'is_primary' => true,
             ],
         ];
     }
 
-    $activeRole = carzo_pick_active_role($roleAssignments, $preferredRole);
+    $activeRole = yamu_pick_active_role($roleAssignments, $preferredRole);
     $activeAssignment = $roleAssignments[$activeRole] ?? null;
-    $activeAccountStatus = carzo_normalize_account_status($activeAssignment['role_status'] ?? ($row['account_status'] ?? carzo_default_account_status_for_role($activeRole)), $activeRole);
-    $activeVerificationStatus = carzo_normalize_verification_status($activeAssignment['verification_status'] ?? ($row['verification_status'] ?? carzo_default_verification_status_for_role($activeRole)), $activeRole);
+    $activeAccountStatus = yamu_normalize_account_status($activeAssignment['role_status'] ?? ($row['account_status'] ?? yamu_default_account_status_for_role($activeRole)), $activeRole);
+    $activeVerificationStatus = yamu_normalize_verification_status($activeAssignment['verification_status'] ?? ($row['verification_status'] ?? yamu_default_verification_status_for_role($activeRole)), $activeRole);
 
     return [
         'user_ID' => (int) ($row['user_id'] ?? 0),
@@ -322,7 +416,7 @@ function carzo_build_user_session(array $row, array $roleAssignments = [], $pref
         'phone' => $row['phone'] ?? '',
         'dob' => $row['dob'] ?? '',
         'avatar' => !empty($row['profile_pic']) ? $row['profile_pic'] : 'avatar.png',
-        'primary_role' => carzo_normalize_role($row['role'] ?? $activeRole),
+        'primary_role' => yamu_normalize_role($row['role'] ?? $activeRole),
         'active_role' => $activeRole,
         'role' => $activeRole,
         'roles' => array_keys($roleAssignments),
@@ -337,12 +431,12 @@ function carzo_build_user_session(array $row, array $roleAssignments = [], $pref
     ];
 }
 
-function carzo_build_admin_session_from_user(array $row, $activeRole = null, $accountStatus = null, $verificationStatus = null)
+function yamu_build_admin_session_from_user(array $row, $activeRole = null, $accountStatus = null, $verificationStatus = null)
 {
-    $role = carzo_normalize_role($activeRole ?? ($row['role'] ?? 'admin'));
+    $role = yamu_normalize_role($activeRole ?? ($row['role'] ?? 'admin'));
 
-    if (!carzo_is_admin_panel_role($role)) {
-        $role = 'admin';
+    if (!yamu_is_admin_role($role)) {
+        return null;
     }
 
     return [
@@ -357,12 +451,12 @@ function carzo_build_admin_session_from_user(array $row, $activeRole = null, $ac
         'phone' => $row['phone'] ?? '',
         'avatar' => !empty($row['profile_pic']) ? $row['profile_pic'] : 'avatar.png',
         'role' => $role,
-        'account_status' => carzo_normalize_account_status($accountStatus ?? ($row['account_status'] ?? carzo_default_account_status_for_role($role)), $role),
-        'verification_status' => carzo_normalize_verification_status($verificationStatus ?? ($row['verification_status'] ?? carzo_default_verification_status_for_role($role)), $role),
+        'account_status' => yamu_normalize_account_status($accountStatus ?? ($row['account_status'] ?? yamu_default_account_status_for_role($role)), $role),
+        'verification_status' => yamu_normalize_verification_status($verificationStatus ?? ($row['verification_status'] ?? yamu_default_verification_status_for_role($role)), $role),
     ];
 }
 
-function carzo_build_admin_session_from_legacy_admin(array $row)
+function yamu_build_admin_session_from_legacy_admin(array $row)
 {
     return [
         'admin_id' => (int) ($row['admin_id'] ?? 0),
@@ -380,27 +474,33 @@ function carzo_build_admin_session_from_legacy_admin(array $row)
     ];
 }
 
-function carzo_set_user_session(array $row, $conn = null, $preferredRole = null)
+function yamu_set_user_session(array $row, $conn = null, $preferredRole = null)
 {
-    $roleAssignments = carzo_fetch_user_roles(
+    $roleAssignments = yamu_fetch_user_roles(
         $conn,
         (int) ($row['user_id'] ?? 0),
         $row['role'] ?? 'customer',
-        $row['account_status'] ?? carzo_default_account_status_for_role($row['role'] ?? 'customer'),
-        $row['verification_status'] ?? carzo_default_verification_status_for_role($row['role'] ?? 'customer')
+        $row['account_status'] ?? yamu_default_account_status_for_role($row['role'] ?? 'customer'),
+        $row['verification_status'] ?? yamu_default_verification_status_for_role($row['role'] ?? 'customer')
     );
 
-    $sessionUser = carzo_build_user_session($row, $roleAssignments, $preferredRole);
+    $sessionUser = yamu_build_user_session($row, $roleAssignments, $preferredRole);
     $_SESSION['user'] = $sessionUser;
     $_SESSION['authenticated'] = true;
 
-    if (carzo_is_admin_panel_role($sessionUser['active_role'])) {
-        $_SESSION['admin'] = carzo_build_admin_session_from_user(
+    if (yamu_is_admin_role($sessionUser['active_role']) && yamu_role_allows_standard_status($sessionUser['account_status'])) {
+        $adminSession = yamu_build_admin_session_from_user(
             $row,
             $sessionUser['active_role'],
             $sessionUser['account_status'],
             $sessionUser['verification_status']
         );
+
+        if ($adminSession) {
+            $_SESSION['admin'] = $adminSession;
+        } else {
+            unset($_SESSION['admin']);
+        }
     } else {
         unset($_SESSION['admin']);
     }
@@ -408,115 +508,122 @@ function carzo_set_user_session(array $row, $conn = null, $preferredRole = null)
     return $sessionUser;
 }
 
-function carzo_refresh_user_session($conn, $userId, $preferredRole = null)
+function yamu_refresh_user_session($conn, $userId, $preferredRole = null)
 {
-    $user = carzo_fetch_user_by_id($conn, $userId);
+    $user = yamu_fetch_user_by_id($conn, $userId);
 
     if (!$user) {
         return null;
     }
 
-    return carzo_set_user_session($user, $conn, $preferredRole);
+    return yamu_set_user_session($user, $conn, $preferredRole);
 }
 
-function carzo_set_admin_session_from_user(array $row, $activeRole = null)
+function yamu_set_admin_session_from_user(array $row, $activeRole = null)
 {
-    $_SESSION['admin'] = carzo_build_admin_session_from_user($row, $activeRole);
+    $adminSession = yamu_build_admin_session_from_user($row, $activeRole);
+
+    if ($adminSession && yamu_role_allows_standard_status($adminSession['account_status'] ?? 'active')) {
+        $_SESSION['admin'] = $adminSession;
+        return;
+    }
+
+    unset($_SESSION['admin']);
 }
 
-function carzo_set_admin_session_from_legacy_admin(array $row)
+function yamu_set_admin_session_from_legacy_admin(array $row)
 {
-    $_SESSION['admin'] = carzo_build_admin_session_from_legacy_admin($row);
+    $_SESSION['admin'] = yamu_build_admin_session_from_legacy_admin($row);
 }
 
-function carzo_is_user_authenticated()
+function yamu_is_user_authenticated()
 {
     return isset($_SESSION['authenticated'], $_SESSION['user']) && $_SESSION['authenticated'] === true;
 }
 
-function carzo_is_admin_authenticated()
+function yamu_is_admin_authenticated()
 {
-    return isset($_SESSION['admin']) && carzo_is_admin_panel_role($_SESSION['admin']['role'] ?? null);
+    return isset($_SESSION['admin']) && yamu_is_admin_panel_role($_SESSION['admin']['role'] ?? null);
 }
 
-function carzo_current_user()
+function yamu_current_user()
 {
     return $_SESSION['user'] ?? null;
 }
 
-function carzo_current_user_role()
+function yamu_current_user_role()
 {
     return $_SESSION['user']['active_role'] ?? ($_SESSION['user']['role'] ?? null);
 }
 
-function carzo_current_user_roles()
+function yamu_current_user_roles()
 {
     $roles = $_SESSION['user']['roles'] ?? [];
     return is_array($roles) ? array_values($roles) : [];
 }
 
-function carzo_current_user_role_assignments()
+function yamu_current_user_role_assignments()
 {
     $assignments = $_SESSION['user']['role_assignments'] ?? [];
     return is_array($assignments) ? $assignments : [];
 }
 
-function carzo_current_user_has_assigned_role($role)
+function yamu_current_user_has_assigned_role($role)
 {
-    $role = carzo_normalize_role($role);
-    $assignments = carzo_current_user_role_assignments();
+    $role = yamu_normalize_role($role);
+    $assignments = yamu_current_user_role_assignments();
     return isset($assignments[$role]);
 }
 
-function carzo_current_user_role_status($role = null)
+function yamu_current_user_role_status($role = null)
 {
-    $role = $role ? carzo_normalize_role($role) : carzo_current_user_role();
-    $assignments = carzo_current_user_role_assignments();
+    $role = $role ? yamu_normalize_role($role) : yamu_current_user_role();
+    $assignments = yamu_current_user_role_assignments();
     $assignment = $assignments[$role] ?? null;
 
     if (!$assignment) {
-        return carzo_normalize_account_status($_SESSION['user']['account_status'] ?? 'active', $role ?: 'customer');
+        return yamu_normalize_account_status($_SESSION['user']['account_status'] ?? 'active', $role ?: 'customer');
     }
 
-    return carzo_normalize_role_status($assignment['role_status'] ?? 'active', $role);
+    return yamu_normalize_role_status($assignment['role_status'] ?? 'active', $role);
 }
 
-function carzo_can_access_role_status($status, $allowedStatuses = ['active', 'pending', 'verified'])
+function yamu_can_access_role_status($status, $allowedStatuses = ['active', 'pending', 'verified'])
 {
-    $status = carzo_normalize_role_status($status);
+    $status = yamu_normalize_role_status($status);
     return in_array($status, (array) $allowedStatuses, true);
 }
 
-function carzo_is_role_blocked($status)
+function yamu_is_role_blocked($status)
 {
-    $status = carzo_normalize_role_status($status);
+    $status = yamu_normalize_role_status($status);
     return in_array($status, ['suspended', 'rejected', 'deactivated'], true);
 }
 
-function carzo_can_switch_to_role($role)
+function yamu_can_switch_to_role($role)
 {
-    $role = carzo_normalize_role($role);
-    $assignments = carzo_current_user_role_assignments();
+    $role = yamu_normalize_role($role);
+    $assignments = yamu_current_user_role_assignments();
     $assignment = $assignments[$role] ?? null;
 
     if (!$assignment) {
         return false;
     }
 
-    return !carzo_is_role_blocked($assignment['role_status'] ?? 'active');
+    return !yamu_is_role_blocked($assignment['role_status'] ?? 'active');
 }
 
-function carzo_switch_active_role($conn, $role, &$errorMessage = null)
+function yamu_switch_active_role($conn, $role, &$errorMessage = null)
 {
-    carzo_start_session();
+    yamu_start_session();
 
-    if (!carzo_is_user_authenticated()) {
+    if (!yamu_is_user_authenticated()) {
         $errorMessage = 'Please sign in to switch roles';
         return false;
     }
 
-    $role = carzo_normalize_role($role);
-    $currentUser = carzo_current_user();
+    $role = yamu_normalize_role($role);
+    $currentUser = yamu_current_user();
     $userId = (int) ($currentUser['user_ID'] ?? 0);
 
     if ($userId <= 0) {
@@ -524,7 +631,7 @@ function carzo_switch_active_role($conn, $role, &$errorMessage = null)
         return false;
     }
 
-    $assignments = carzo_fetch_user_roles(
+    $assignments = yamu_fetch_user_roles(
         $conn,
         $userId,
         $currentUser['primary_role'] ?? $currentUser['role'] ?? 'customer',
@@ -539,27 +646,27 @@ function carzo_switch_active_role($conn, $role, &$errorMessage = null)
         return false;
     }
 
-    if (carzo_is_role_blocked($targetAssignment['role_status'] ?? 'active')) {
+    if (yamu_is_role_blocked($targetAssignment['role_status'] ?? 'active')) {
         $errorMessage = 'Selected role is currently unavailable';
         return false;
     }
 
-    $userRow = carzo_fetch_user_by_id($conn, $userId);
+    $userRow = yamu_fetch_user_by_id($conn, $userId);
 
     if (!$userRow) {
         $errorMessage = 'User account not found';
         return false;
     }
 
-    carzo_set_user_session($userRow, $conn, $role);
+    yamu_set_user_session($userRow, $conn, $role);
     return true;
 }
 
-function carzo_public_home_path_for_role($role)
+function yamu_public_home_path_for_role($role)
 {
-    $role = carzo_normalize_role($role);
+    $role = yamu_normalize_role($role);
 
-    if (carzo_is_admin_panel_role($role)) {
+    if (yamu_is_admin_panel_role($role)) {
         return 'admin/dashboard.php';
     }
 
@@ -567,32 +674,36 @@ function carzo_public_home_path_for_role($role)
         return 'driver-dashboard.php';
     }
 
+    if ($role === 'staff') {
+        return 'staff-dashboard.php';
+    }
+
     return 'index.php';
 }
 
-function carzo_current_public_home_path()
+function yamu_current_public_home_path()
 {
-    if (carzo_is_user_authenticated()) {
-        return carzo_public_home_path_for_role(carzo_current_user_role());
+    if (yamu_is_user_authenticated()) {
+        return yamu_public_home_path_for_role(yamu_current_user_role());
     }
 
-    if (carzo_is_admin_authenticated()) {
+    if (yamu_is_admin_authenticated()) {
         return 'admin/dashboard.php';
     }
 
     return 'index.php';
 }
 
-function carzo_redirect_authenticated_actor()
+function yamu_redirect_authenticated_actor()
 {
-    if (carzo_is_admin_authenticated() || carzo_is_user_authenticated()) {
-        carzo_redirect(carzo_current_public_home_path());
+    if (yamu_is_admin_authenticated() || yamu_is_user_authenticated()) {
+        yamu_redirect(yamu_current_public_home_path());
     }
 }
 
-function carzo_logout_current_session()
+function yamu_logout_current_session()
 {
-    carzo_start_session();
+    yamu_start_session();
     $_SESSION = [];
 
     if (ini_get('session.use_cookies')) {
@@ -603,16 +714,16 @@ function carzo_logout_current_session()
     session_destroy();
 }
 
-function carzo_has_user_role($roles)
+function yamu_has_user_role($roles)
 {
-    $roles = array_map('carzo_normalize_role', (array) $roles);
-    return in_array(carzo_current_user_role(), $roles, true);
+    $roles = array_map('yamu_normalize_role', (array) $roles);
+    return in_array(yamu_current_user_role(), $roles, true);
 }
 
-function carzo_has_any_assigned_role($roles)
+function yamu_has_any_assigned_role($roles)
 {
-    $roles = array_map('carzo_normalize_role', (array) $roles);
-    $assignedRoles = carzo_current_user_roles();
+    $roles = array_map('yamu_normalize_role', (array) $roles);
+    $assignedRoles = yamu_current_user_roles();
 
     foreach ($roles as $role) {
         if (in_array($role, $assignedRoles, true)) {
@@ -623,57 +734,84 @@ function carzo_has_any_assigned_role($roles)
     return false;
 }
 
-function carzo_require_user_roles($roles, $redirect = 'signin.php', $allowedStatuses = ['active', 'pending', 'verified'], $forbiddenRedirect = 'access-denied.php')
+function yamu_require_user_roles($roles, $redirect = 'signin.php', $allowedStatuses = ['active', 'pending', 'verified'], $forbiddenRedirect = 'access-denied.php')
 {
-    carzo_start_session();
+    yamu_require_active_user_role($roles, $redirect, $allowedStatuses, $forbiddenRedirect);
+}
 
-    if (!carzo_is_user_authenticated()) {
-        carzo_redirect_with_message($redirect, 'error', 'Please sign in to continue');
-    }
+function yamu_require_authenticated_user($redirect = 'signin.php')
+{
+    yamu_start_session();
 
-    if (!carzo_has_user_role($roles)) {
-        carzo_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
-    }
-
-    $accountStatus = carzo_current_user_role_status();
-
-    if (!carzo_can_access_role_status($accountStatus, $allowedStatuses)) {
-        carzo_redirect_with_message($forbiddenRedirect, 'error', 'Your selected role is currently unavailable');
+    if (!yamu_is_user_authenticated()) {
+        yamu_redirect_with_message($redirect, 'error', 'Please sign in to continue');
     }
 }
 
-function carzo_require_any_assigned_user_role($roles, $redirect = 'signin.php', $forbiddenRedirect = 'access-denied.php')
+function yamu_require_active_user_role($roles, $redirect = 'signin.php', $allowedStatuses = ['active', 'pending', 'verified'], $forbiddenRedirect = 'access-denied.php')
 {
-    carzo_start_session();
+    yamu_require_authenticated_user($redirect);
 
-    if (!carzo_is_user_authenticated()) {
-        carzo_redirect_with_message($redirect, 'error', 'Please sign in to continue');
+    if (!yamu_has_user_role($roles)) {
+        yamu_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
     }
 
-    if (!carzo_has_any_assigned_role($roles)) {
-        carzo_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
+    $accountStatus = yamu_current_user_role_status();
+
+    if (!yamu_can_access_role_status($accountStatus, $allowedStatuses)) {
+        yamu_redirect_with_message($forbiddenRedirect, 'error', 'Your selected role is currently unavailable');
     }
 }
 
-function carzo_require_admin($redirect = 'index.php', $forbiddenRedirect = 'access-denied.php')
+function yamu_require_any_assigned_user_role($roles, $redirect = 'signin.php', $forbiddenRedirect = 'access-denied.php')
 {
-    carzo_start_session();
+    yamu_require_assigned_user_role($roles, $redirect, ['active', 'pending', 'verified'], $forbiddenRedirect);
+}
 
-    if (!carzo_is_admin_authenticated()) {
-        if (carzo_is_user_authenticated()) {
-            carzo_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
+function yamu_require_assigned_user_role($roles, $redirect = 'signin.php', $allowedStatuses = ['active', 'pending', 'verified'], $forbiddenRedirect = 'access-denied.php')
+{
+    yamu_require_authenticated_user($redirect);
+
+    if (!yamu_has_any_assigned_role($roles)) {
+        yamu_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
+    }
+
+    $roles = array_map('yamu_normalize_role', (array) $roles);
+
+    foreach ($roles as $role) {
+        if (!yamu_current_user_has_assigned_role($role)) {
+            continue;
         }
 
-        carzo_redirect_with_message($redirect, 'error', 'Please sign in as admin to continue');
+        $status = yamu_current_user_role_status($role);
+
+        if (yamu_can_access_role_status($status, $allowedStatuses)) {
+            return;
+        }
     }
 
-    $adminStatus = carzo_normalize_account_status($_SESSION['admin']['account_status'] ?? 'active', $_SESSION['admin']['role'] ?? 'admin');
-    if (carzo_is_role_blocked($adminStatus)) {
-        carzo_redirect_with_message($redirect, 'error', 'Your admin role is currently unavailable');
+    yamu_redirect_with_message($forbiddenRedirect, 'error', 'Your assigned role is currently unavailable');
+}
+
+function yamu_require_admin($redirect = 'index.php', $forbiddenRedirect = 'access-denied.php')
+{
+    yamu_start_session();
+
+    if (!yamu_is_admin_authenticated()) {
+        if (yamu_is_user_authenticated()) {
+            yamu_redirect_with_message($forbiddenRedirect, 'error', 'You do not have permission to access that page');
+        }
+
+        yamu_redirect_with_message($redirect, 'error', 'Please sign in as admin to continue');
+    }
+
+    $adminStatus = yamu_normalize_account_status($_SESSION['admin']['account_status'] ?? 'active', $_SESSION['admin']['role'] ?? 'admin');
+    if (!yamu_role_allows_standard_status($adminStatus)) {
+        yamu_redirect_with_message($redirect, 'error', 'Your admin role is currently unavailable');
     }
 }
 
-function carzo_badge_class($status)
+function yamu_badge_class($status)
 {
     $status = strtolower(trim((string) $status));
 
@@ -688,7 +826,7 @@ function carzo_badge_class($status)
     return 'Status-inactive-badge';
 }
 
-function carzo_fetch_user_by_email($conn, $email)
+function yamu_fetch_user_by_email($conn, $email)
 {
     $stmt = $conn->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
 
@@ -705,7 +843,7 @@ function carzo_fetch_user_by_email($conn, $email)
     return $row ?: null;
 }
 
-function carzo_fetch_user_by_id($conn, $userId)
+function yamu_fetch_user_by_id($conn, $userId)
 {
     $stmt = $conn->prepare('SELECT * FROM users WHERE user_id = ? LIMIT 1');
 
@@ -722,13 +860,13 @@ function carzo_fetch_user_by_id($conn, $userId)
     return $row ?: null;
 }
 
-function carzo_touch_user_last_login($conn, $userId)
+function yamu_touch_user_last_login($conn, $userId)
 {
     if (!$conn || (int) $userId <= 0) {
         return;
     }
 
-    if (!carzo_ensure_users_last_login_column($conn)) {
+    if (!yamu_ensure_users_last_login_column($conn)) {
         return;
     }
 
@@ -743,13 +881,13 @@ function carzo_touch_user_last_login($conn, $userId)
     $stmt->close();
 }
 
-function carzo_upgrade_password_hash_if_needed($conn, $userId, $plainPassword, $storedPassword)
+function yamu_upgrade_password_hash_if_needed($conn, $userId, $plainPassword, $storedPassword)
 {
-    if (!carzo_password_needs_rehash_upgrade($storedPassword)) {
+    if (!yamu_password_needs_rehash_upgrade($storedPassword)) {
         return;
     }
 
-    $newHash = carzo_hash_password($plainPassword);
+    $newHash = yamu_hash_password($plainPassword);
     $stmt = $conn->prepare('UPDATE users SET password = ?, updated_at = NOW() WHERE user_id = ?');
 
     if (!$stmt) {
@@ -761,16 +899,16 @@ function carzo_upgrade_password_hash_if_needed($conn, $userId, $plainPassword, $
     $stmt->close();
 }
 
-function carzo_upsert_user_role_assignment($conn, $userId, $role, $roleStatus = null, $verificationStatus = null, $isPrimary = false, $assignedByUserId = null, $notes = null)
+function yamu_upsert_user_role_assignment($conn, $userId, $role, $roleStatus = null, $verificationStatus = null, $isPrimary = false, $assignedByUserId = null, $notes = null)
 {
-    if (!$conn || !carzo_table_exists($conn, 'user_roles')) {
+    if (!$conn || !yamu_table_exists($conn, 'user_roles')) {
         return false;
     }
 
     $userId = (int) $userId;
-    $role = carzo_normalize_role($role);
-    $roleStatus = carzo_normalize_role_status($roleStatus ?? carzo_default_account_status_for_role($role), $role);
-    $verificationStatus = carzo_normalize_verification_status($verificationStatus ?? carzo_default_verification_status_for_role($role), $role);
+    $role = yamu_normalize_role($role);
+    $roleStatus = yamu_normalize_role_status($roleStatus ?? yamu_default_account_status_for_role($role), $role);
+    $verificationStatus = yamu_normalize_verification_status($verificationStatus ?? yamu_default_verification_status_for_role($role), $role);
     $isPrimary = $isPrimary ? 1 : 0;
     $assignedByUserId = $assignedByUserId !== null ? (int) $assignedByUserId : null;
     $notes = $notes !== null ? trim((string) $notes) : null;
@@ -784,7 +922,7 @@ function carzo_upsert_user_role_assignment($conn, $userId, $role, $roleStatus = 
         }
     }
 
-    $existingStmt = $conn->prepare('SELECT user_role_id FROM user_roles WHERE user_id = ? AND role_key = ? LIMIT 1');
+    $existingStmt = $conn->prepare('SELECT user_role_id, is_primary FROM user_roles WHERE user_id = ? AND role_key = ? LIMIT 1');
     if (!$existingStmt) {
         return false;
     }
@@ -796,6 +934,10 @@ function carzo_upsert_user_role_assignment($conn, $userId, $role, $roleStatus = 
     $existingStmt->close();
 
     if ($existing) {
+        if ($isPrimary !== 1) {
+            $isPrimary = (int) ($existing['is_primary'] ?? 0) === 1 ? 1 : 0;
+        }
+
         $updateStmt = $conn->prepare(
             'UPDATE user_roles
              SET role_status = ?, verification_status = ?, is_primary = ?, assigned_by_user_id = ?, notes = ?, updated_at = NOW()
@@ -826,17 +968,84 @@ function carzo_upsert_user_role_assignment($conn, $userId, $role, $roleStatus = 
     $ok = $insertStmt->execute();
     $insertStmt->close();
 
+    if ($ok) {
+        yamu_ensure_user_primary_role_assignment($conn, $userId, $isPrimary === 1 ? $role : null);
+    }
+
     return $ok;
 }
 
-function carzo_remove_user_role_assignment($conn, $userId, $role)
+function yamu_ensure_user_primary_role_assignment($conn, $userId, $preferredRole = null)
 {
-    if (!$conn || !carzo_table_exists($conn, 'user_roles')) {
+    if (!$conn || !yamu_table_exists($conn, 'user_roles')) {
         return false;
     }
 
     $userId = (int) $userId;
-    $role = carzo_normalize_role($role);
+    $preferredRole = $preferredRole !== null ? yamu_normalize_role($preferredRole) : null;
+    $assignments = yamu_fetch_user_roles($conn, $userId);
+
+    if (empty($assignments)) {
+        return false;
+    }
+
+    $primaryRole = null;
+
+    if ($preferredRole !== null && isset($assignments[$preferredRole])) {
+        $primaryRole = $preferredRole;
+    }
+
+    if ($primaryRole === null) {
+        foreach ($assignments as $assignmentRole => $assignment) {
+            if (!empty($assignment['is_primary'])) {
+                $primaryRole = $assignmentRole;
+                break;
+            }
+        }
+    }
+
+    if ($primaryRole === null) {
+        foreach ($assignments as $assignmentRole => $assignment) {
+            $status = yamu_normalize_role_status($assignment['role_status'] ?? 'active', $assignmentRole);
+            if (!yamu_is_role_blocked($status)) {
+                $primaryRole = $assignmentRole;
+                break;
+            }
+        }
+    }
+
+    if ($primaryRole === null) {
+        $primaryRole = array_key_first($assignments);
+    }
+
+    $resetStmt = $conn->prepare('UPDATE user_roles SET is_primary = 0, updated_at = NOW() WHERE user_id = ?');
+    if (!$resetStmt) {
+        return false;
+    }
+    $resetStmt->bind_param('i', $userId);
+    $resetStmt->execute();
+    $resetStmt->close();
+
+    $setStmt = $conn->prepare('UPDATE user_roles SET is_primary = 1, updated_at = NOW() WHERE user_id = ? AND role_key = ? LIMIT 1');
+    if (!$setStmt) {
+        return false;
+    }
+
+    $setStmt->bind_param('is', $userId, $primaryRole);
+    $ok = $setStmt->execute();
+    $setStmt->close();
+
+    return $ok;
+}
+
+function yamu_remove_user_role_assignment($conn, $userId, $role)
+{
+    if (!$conn || !yamu_table_exists($conn, 'user_roles')) {
+        return false;
+    }
+
+    $userId = (int) $userId;
+    $role = yamu_normalize_role($role);
 
     $countStmt = $conn->prepare('SELECT COUNT(*) AS role_count FROM user_roles WHERE user_id = ?');
     if (!$countStmt) {
@@ -860,16 +1069,22 @@ function carzo_remove_user_role_assignment($conn, $userId, $role)
     $stmt->bind_param('is', $userId, $role);
     $ok = $stmt->execute();
     $stmt->close();
+
+    if ($ok) {
+        yamu_ensure_user_primary_role_assignment($conn, $userId);
+    }
+
     return $ok;
 }
 
-function carzo_sync_user_primary_role_snapshot($conn, $userId)
+function yamu_sync_user_primary_role_snapshot($conn, $userId)
 {
-    if (!$conn || !carzo_table_exists($conn, 'user_roles')) {
+    if (!$conn || !yamu_table_exists($conn, 'user_roles')) {
         return false;
     }
 
     $userId = (int) $userId;
+    yamu_ensure_user_primary_role_assignment($conn, $userId);
     $stmt = $conn->prepare(
         'SELECT role_key, role_status, verification_status
          FROM user_roles
@@ -892,9 +1107,9 @@ function carzo_sync_user_primary_role_snapshot($conn, $userId)
         return false;
     }
 
-    $role = carzo_normalize_role($row['role_key'] ?? 'customer');
-    $roleStatus = carzo_normalize_role_status($row['role_status'] ?? carzo_default_account_status_for_role($role), $role);
-    $verificationStatus = carzo_normalize_verification_status($row['verification_status'] ?? carzo_default_verification_status_for_role($role), $role);
+    $role = yamu_normalize_role($row['role_key'] ?? 'customer');
+    $roleStatus = yamu_normalize_role_status($row['role_status'] ?? yamu_default_account_status_for_role($role), $role);
+    $verificationStatus = yamu_normalize_verification_status($row['verification_status'] ?? yamu_default_verification_status_for_role($role), $role);
 
     $updateStmt = $conn->prepare(
         'UPDATE users
@@ -913,17 +1128,17 @@ function carzo_sync_user_primary_role_snapshot($conn, $userId)
     return $ok;
 }
 
-function carzo_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null)
+function yamu_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null)
 {
     if (!$conn) {
         return false;
     }
 
     $userId = (int) $userId;
-    $role = carzo_normalize_role($role);
-    $sourceUser = is_array($sourceUser) ? $sourceUser : carzo_fetch_user_by_id($conn, $userId);
+    $role = yamu_normalize_role($role);
+    $sourceUser = is_array($sourceUser) ? $sourceUser : yamu_fetch_user_by_id($conn, $userId);
 
-    if ($role === 'customer' && carzo_table_exists($conn, 'customer_profiles')) {
+    if ($role === 'customer' && yamu_table_exists($conn, 'customer_profiles')) {
         $stmt = $conn->prepare('INSERT IGNORE INTO customer_profiles (user_id, created_at, updated_at) VALUES (?, NOW(), NOW())');
         if (!$stmt) {
             return false;
@@ -934,9 +1149,9 @@ function carzo_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null
         return $ok;
     }
 
-    if ($role === 'driver' && carzo_table_exists($conn, 'driver_profiles')) {
+    if ($role === 'driver' && yamu_table_exists($conn, 'driver_profiles')) {
         $licenseOrNic = trim((string) ($sourceUser['license_or_nic'] ?? ''));
-        $verificationStatus = carzo_normalize_verification_status($sourceUser['verification_status'] ?? 'pending', 'driver');
+        $verificationStatus = yamu_normalize_verification_status($sourceUser['verification_status'] ?? 'pending', 'driver');
         $stmt = $conn->prepare(
             'INSERT IGNORE INTO driver_profiles (user_id, driving_license_number, nic_id, verification_status, created_at, updated_at)
              VALUES (?, ?, ?, ?, NOW(), NOW())'
@@ -952,12 +1167,12 @@ function carzo_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null
         return $ok;
     }
 
-    if ($role === 'staff' && carzo_table_exists($conn, 'staff_profiles')) {
+    if ($role === 'staff' && yamu_table_exists($conn, 'staff_profiles')) {
         $storeOwner = trim((string) ($sourceUser['full_name'] ?? ''));
         $storeAddress = trim((string) ($sourceUser['address'] ?? ''));
         $storeContact = trim((string) ($sourceUser['phone'] ?? ''));
         $storeEmail = trim((string) ($sourceUser['email'] ?? ''));
-        $verificationStatus = carzo_normalize_verification_status($sourceUser['verification_status'] ?? 'pending', 'staff');
+        $verificationStatus = yamu_normalize_verification_status($sourceUser['verification_status'] ?? 'pending', 'staff');
         $stmt = $conn->prepare(
             'INSERT IGNORE INTO staff_profiles (user_id, store_owner, store_address, store_contact_number, store_email, verification_status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())'
@@ -973,7 +1188,7 @@ function carzo_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null
         return $ok;
     }
 
-    if ($role === 'admin' && carzo_table_exists($conn, 'admin_profiles')) {
+    if ($role === 'admin' && yamu_table_exists($conn, 'admin_profiles')) {
         $permissions = 'all';
         $stmt = $conn->prepare('INSERT IGNORE INTO admin_profiles (user_id, system_permissions, created_at, updated_at) VALUES (?, ?, NOW(), NOW())');
         if (!$stmt) {
@@ -988,14 +1203,14 @@ function carzo_ensure_role_profile_row($conn, $userId, $role, $sourceUser = null
     return false;
 }
 
-function carzo_fetch_role_profile($conn, $userId, $role)
+function yamu_fetch_role_profile($conn, $userId, $role)
 {
     if (!$conn) {
         return null;
     }
 
     $userId = (int) $userId;
-    $role = carzo_normalize_role($role);
+    $role = yamu_normalize_role($role);
 
     $tableByRole = [
         'customer' => 'customer_profiles',
@@ -1006,7 +1221,7 @@ function carzo_fetch_role_profile($conn, $userId, $role)
 
     $table = $tableByRole[$role] ?? null;
 
-    if (!$table || !carzo_table_exists($conn, $table)) {
+    if (!$table || !yamu_table_exists($conn, $table)) {
         return null;
     }
 
@@ -1025,9 +1240,9 @@ function carzo_fetch_role_profile($conn, $userId, $role)
     return $profile ?: null;
 }
 
-function carzo_create_password_reset_token($conn, $userId, $email, $expiryMinutes = 30)
+function yamu_create_password_reset_token($conn, $userId, $email, $expiryMinutes = 30)
 {
-    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
+    if (!$conn || !yamu_ensure_password_resets_table($conn)) {
         return null;
     }
 
@@ -1068,9 +1283,9 @@ function carzo_create_password_reset_token($conn, $userId, $email, $expiryMinute
     return $token;
 }
 
-function carzo_fetch_password_reset_by_token($conn, $token)
+function yamu_fetch_password_reset_by_token($conn, $token)
 {
-    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
+    if (!$conn || !yamu_ensure_password_resets_table($conn)) {
         return null;
     }
 
@@ -1102,9 +1317,9 @@ function carzo_fetch_password_reset_by_token($conn, $token)
     return $row ?: null;
 }
 
-function carzo_mark_password_reset_used($conn, $passwordResetId)
+function yamu_mark_password_reset_used($conn, $passwordResetId)
 {
-    if (!$conn || !carzo_ensure_password_resets_table($conn)) {
+    if (!$conn || !yamu_ensure_password_resets_table($conn)) {
         return false;
     }
 
@@ -1122,9 +1337,9 @@ function carzo_mark_password_reset_used($conn, $passwordResetId)
     return $ok;
 }
 
-function carzo_users_password_column_length($conn)
+function yamu_users_password_column_length($conn)
 {
-    if (!$conn || !carzo_table_exists($conn, 'users')) {
+    if (!$conn || !yamu_table_exists($conn, 'users')) {
         return 0;
     }
 
@@ -1148,9 +1363,9 @@ function carzo_users_password_column_length($conn)
     return 0;
 }
 
-function carzo_users_has_column($conn, $columnName)
+function yamu_users_has_column($conn, $columnName)
 {
-    if (!$conn || !carzo_table_exists($conn, 'users')) {
+    if (!$conn || !yamu_table_exists($conn, 'users')) {
         return false;
     }
 
@@ -1172,13 +1387,13 @@ function carzo_users_has_column($conn, $columnName)
     return $exists;
 }
 
-function carzo_ensure_users_password_column($conn)
+function yamu_ensure_users_password_column($conn)
 {
-    if (!$conn || !carzo_table_exists($conn, 'users')) {
+    if (!$conn || !yamu_table_exists($conn, 'users')) {
         return false;
     }
 
-    $currentLength = carzo_users_password_column_length($conn);
+    $currentLength = yamu_users_password_column_length($conn);
 
     if ($currentLength >= 255) {
         return true;
@@ -1187,26 +1402,26 @@ function carzo_ensure_users_password_column($conn)
     return (bool) $conn->query('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) DEFAULT NULL');
 }
 
-function carzo_ensure_users_last_login_column($conn)
+function yamu_ensure_users_last_login_column($conn)
 {
-    if (!$conn || !carzo_table_exists($conn, 'users')) {
+    if (!$conn || !yamu_table_exists($conn, 'users')) {
         return false;
     }
 
-    if (carzo_users_has_column($conn, 'last_login_at')) {
+    if (yamu_users_has_column($conn, 'last_login_at')) {
         return true;
     }
 
     return (bool) $conn->query('ALTER TABLE users ADD COLUMN last_login_at DATETIME DEFAULT NULL AFTER updated_at');
 }
 
-function carzo_ensure_password_resets_table($conn)
+function yamu_ensure_password_resets_table($conn)
 {
     if (!$conn) {
         return false;
     }
 
-    if (carzo_table_exists($conn, 'password_resets')) {
+    if (yamu_table_exists($conn, 'password_resets')) {
         return true;
     }
 
@@ -1227,7 +1442,7 @@ function carzo_ensure_password_resets_table($conn)
     return (bool) $conn->query($sql);
 }
 
-function carzo_profile_avatar_path($fileName)
+function yamu_profile_avatar_path($fileName)
 {
     $fileName = !empty($fileName) ? $fileName : 'avatar.png';
     return 'assets/images/uploads/avatar/' . $fileName;

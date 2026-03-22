@@ -1,6 +1,6 @@
 <?php
 
-function carzo_driver_service_locations()
+function yamu_driver_service_locations()
 {
     return [
         'Colombo',
@@ -33,12 +33,12 @@ function carzo_driver_service_locations()
     ];
 }
 
-function carzo_driver_service_location_exists($location)
+function yamu_driver_service_location_exists($location)
 {
-    return in_array(trim((string) $location), carzo_driver_service_locations(), true);
+    return in_array(trim((string) $location), yamu_driver_service_locations(), true);
 }
 
-function carzo_driver_language_options()
+function yamu_driver_language_options()
 {
     return [
         'English',
@@ -51,7 +51,7 @@ function carzo_driver_language_options()
     ];
 }
 
-function carzo_driver_language_exists($language)
+function yamu_driver_language_exists($language)
 {
-    return in_array(trim((string) $language), carzo_driver_language_options(), true);
+    return in_array(trim((string) $language), yamu_driver_language_options(), true);
 }

@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/booking-management.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 include 'includes/config.php';
 $page_title = "Booking";
 
@@ -36,11 +36,11 @@ $sql = "SELECT b.*,
         WHERE 1 = 1";
 
 if (in_array($statusFilter, $allowedStatuses, true)) {
-    $sql .= " AND b.booking_status = '" . carzo_escape($conn, $statusFilter) . "'";
+    $sql .= " AND b.booking_status = '" . yamu_escape($conn, $statusFilter) . "'";
 }
 
 if (in_array($paymentFilter, $allowedPayments, true)) {
-    $sql .= " AND b.payment_status = '" . carzo_escape($conn, $paymentFilter) . "'";
+    $sql .= " AND b.payment_status = '" . yamu_escape($conn, $paymentFilter) . "'";
 }
 
 $sql .= " ORDER BY COALESCE(b.updated_at, b.booking_Date) DESC, b.booking_id DESC";
@@ -120,16 +120,16 @@ $result = mysqli_query($conn, $sql);
                             <select name="status" style="width: 170px;">
                                 <option value="">All Statuses</option>
                                 <?php foreach ($allowedStatuses as $allowedStatus) { ?>
-                                    <option value="<?php echo carzo_e($allowedStatus); ?>" <?php echo ($statusFilter === $allowedStatus) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($allowedStatus)); ?>
+                                    <option value="<?php echo yamu_e($allowedStatus); ?>" <?php echo ($statusFilter === $allowedStatus) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($allowedStatus)); ?>
                                     </option>
                                 <?php } ?>
                             </select>
                             <select name="payment_status" style="width: 170px;">
                                 <option value="">All Payments</option>
                                 <?php foreach ($allowedPayments as $allowedPayment) { ?>
-                                    <option value="<?php echo carzo_e($allowedPayment); ?>" <?php echo ($paymentFilter === $allowedPayment) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($allowedPayment)); ?>
+                                    <option value="<?php echo yamu_e($allowedPayment); ?>" <?php echo ($paymentFilter === $allowedPayment) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($allowedPayment)); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -156,28 +156,28 @@ $result = mysqli_query($conn, $sql);
                         <tbody class="table-body">
                             <?php if ($result && mysqli_num_rows($result) > 0) {
                                 while ($row = mysqli_fetch_assoc($result)) {
-                                    $status = carzo_booking_normalize_status($row['booking_status'] ?? 'pending');
-                                    $paymentStatus = carzo_booking_normalize_payment_status($row['payment_status'] ?? 'pending');
+                                    $status = yamu_booking_normalize_status($row['booking_status'] ?? 'pending');
+                                    $paymentStatus = yamu_booking_normalize_payment_status($row['payment_status'] ?? 'pending');
                                     ?>
                                     <tr>
                                         <td><?php echo (int) $row['booking_id']; ?></td>
-                                        <td><?php echo carzo_e($row['booking_No']); ?></td>
+                                        <td><?php echo yamu_e($row['booking_No']); ?></td>
                                         <td>
-                                            <?php echo carzo_e($row['vehicle_title']); ?><br>
-                                            <small><?php echo carzo_e($row['registration_number']); ?></small>
+                                            <?php echo yamu_e($row['vehicle_title']); ?><br>
+                                            <small><?php echo yamu_e($row['registration_number']); ?></small>
                                         </td>
                                         <td>
-                                            <?php echo carzo_e($row['customer_name']); ?><br>
-                                            <small><?php echo carzo_e($row['customer_email']); ?></small>
+                                            <?php echo yamu_e($row['customer_name']); ?><br>
+                                            <small><?php echo yamu_e($row['customer_email']); ?></small>
                                         </td>
                                         <td>
-                                            <?php echo carzo_e($row['driver_name']); ?><br>
-                                            <small><?php echo carzo_e($row['driver_email']); ?></small>
+                                            <?php echo yamu_e($row['driver_name']); ?><br>
+                                            <small><?php echo yamu_e($row['driver_email']); ?></small>
                                         </td>
-                                        <td><?php echo carzo_e($row['start_Data']); ?><br>to<br><?php echo carzo_e($row['end_Date']); ?></td>
-                                        <td><?php echo carzo_e($row['total']); ?></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($paymentStatus)); ?>"><?php echo carzo_e(ucfirst($paymentStatus)); ?></span></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span></td>
+                                        <td><?php echo yamu_e($row['start_Data']); ?><br>to<br><?php echo yamu_e($row['end_Date']); ?></td>
+                                        <td><?php echo yamu_e($row['total']); ?></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($paymentStatus)); ?>"><?php echo yamu_e(ucfirst($paymentStatus)); ?></span></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($status)); ?>"><?php echo yamu_e(ucfirst($status)); ?></span></td>
                                         <td class="action-cell">
                                             <div class="table-actions">
                                             <a href="booking-details.php?bookingID=<?php echo (int) $row['booking_id']; ?>" class="edit-badge" title="View"><i class="ri-eye-line"></i></a>

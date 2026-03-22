@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Promotions";
 include 'includes/config.php';
 $vehicleResult = mysqli_query($conn, "SELECT vehicle_id, vehicle_title FROM vehicles ORDER BY vehicle_title ASC");
@@ -28,7 +28,7 @@ $vehicleResult = mysqli_query($conn, "SELECT vehicle_id, vehicle_title FROM vehi
                 <div class="form-group"><label for="usage_limit">Usage Limit</label><input type="number" name="usage_limit" id="usage_limit"></div>
                 <div class="form-group"><label for="minimum_booking_amount">Minimum Booking Amount</label><input type="number" step="0.01" name="minimum_booking_amount" id="minimum_booking_amount"></div>
                 <div class="form-group"><label for="status">Status</label><select name="status" id="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
-                <div class="form-group"><label for="applicable_vehicle_id">Applicable Vehicle</label><select name="applicable_vehicle_id" id="applicable_vehicle_id"><option value="">All vehicles</option><?php while ($vehicleResult && $vehicle = mysqli_fetch_assoc($vehicleResult)) { ?><option value="<?php echo (int) $vehicle['vehicle_id']; ?>"><?php echo carzo_e($vehicle['vehicle_title']); ?></option><?php } ?></select></div>
+                <div class="form-group"><label for="applicable_vehicle_id">Applicable Vehicle</label><select name="applicable_vehicle_id" id="applicable_vehicle_id"><option value="">All vehicles</option><?php while ($vehicleResult && $vehicle = mysqli_fetch_assoc($vehicleResult)) { ?><option value="<?php echo (int) $vehicle['vehicle_id']; ?>"><?php echo yamu_e($vehicle['vehicle_title']); ?></option><?php } ?></select></div>
                 <input type="submit" value="Create Promotion" class="btn main-btn" name="createPromotion">
             </form>
         </div></div>

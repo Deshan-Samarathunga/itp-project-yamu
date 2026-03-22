@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
-carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
+    yamu_start_session();
+yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'access-denied.php');
     include 'includes/config.php';
     $page_title = 'Driver Dashboard';
     $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
@@ -26,7 +26,8 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                 SUM(booking_status = 'confirmed') AS active_bookings,
                 SUM(booking_status = 'completed') AS completed_bookings
          FROM booking
-         WHERE driver_id = {$driverId}"
+         WHERE driver_id = {$driverId}
+           AND vehicle_ID IS NULL"
     );
     $bookingStats = $bookingStatsResult ? mysqli_fetch_assoc($bookingStatsResult) : [];
 
@@ -36,8 +37,10 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                 SUM(status = 'visible') AS visible_reviews,
                 SUM(status = 'pending') AS pending_reviews,
                 COALESCE(AVG(CASE WHEN status = 'visible' THEN rating END), 0) AS average_rating
-         FROM reviews
-         WHERE driver_id = {$driverId}"
+         FROM reviews r
+         LEFT JOIN booking b ON b.booking_id = r.booking_id
+         WHERE r.driver_id = {$driverId}
+           AND b.vehicle_ID IS NULL"
     );
     $reviewStats = $reviewStatsResult ? mysqli_fetch_assoc($reviewStatsResult) : [];
 
@@ -46,19 +49,21 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
         "SELECT COUNT(*) AS total_disputes,
                 SUM(status IN ('open', 'under_review')) AS active_disputes
          FROM complaints c
-         LEFT JOIN vehicles owned_vehicle ON owned_vehicle.vehicle_id = c.target_vehicle_id
+         LEFT JOIN booking b ON b.booking_id = c.booking_id
          WHERE c.target_user_id = {$driverId}
-            OR owned_vehicle.owner_user_id = {$driverId}"
+           AND b.vehicle_ID IS NULL"
     );
     $disputeStats = $disputeStatsResult ? mysqli_fetch_assoc($disputeStatsResult) : [];
 
     $earningsStatsResult = mysqli_query(
         $conn,
         "SELECT COUNT(*) AS paid_transactions,
-                COALESCE(SUM(final_amount), 0) AS paid_earnings
-         FROM payments
-         WHERE driver_id = {$driverId}
-           AND payment_status = 'paid'"
+                COALESCE(SUM(p.final_amount), 0) AS paid_earnings
+         FROM payments p
+         LEFT JOIN booking b ON b.booking_id = p.booking_id
+         WHERE p.driver_id = {$driverId}
+           AND p.payment_status = 'paid'
+           AND b.vehicle_ID IS NULL"
     );
     $earningsStats = $earningsStatsResult ? mysqli_fetch_assoc($earningsStatsResult) : [];
 
@@ -183,7 +188,7 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                 ],
                 [
                     'label' => 'Paid Earnings',
-                    'value' => 'Rs. ' . carzo_money($earningsStats['paid_earnings'] ?? 0),
+                    'value' => 'Rs. ' . yamu_money($earningsStats['paid_earnings'] ?? 0),
                     'icon' => 'ri-money-dollar-circle-line',
                     'accent' => 'teal',
                 ],
@@ -229,19 +234,19 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                             <div class="driver-dashboard-section">
                                 <div class="driver-dashboard-section-head">
                                     <div>
-                                        <h4><?php echo carzo_e($dashboardSection['title']); ?></h4>
-                                        <p><?php echo carzo_e($dashboardSection['description']); ?></p>
+                                        <h4><?php echo yamu_e($dashboardSection['title']); ?></h4>
+                                        <p><?php echo yamu_e($dashboardSection['description']); ?></p>
                                     </div>
                                 </div>
                                 <div class="driver-dashboard-grid">
                                     <?php foreach ($dashboardSection['cards'] as $dashboardCard) { ?>
-                                        <div class="driver-overview-card accent-<?php echo carzo_e($dashboardCard['accent']); ?>">
+                                        <div class="driver-overview-card accent-<?php echo yamu_e($dashboardCard['accent']); ?>">
                                             <div class="driver-overview-info">
-                                                <h5><?php echo carzo_e($dashboardCard['label']); ?></h5>
-                                                <span><?php echo carzo_e((string) $dashboardCard['value']); ?></span>
+                                                <h5><?php echo yamu_e($dashboardCard['label']); ?></h5>
+                                                <span><?php echo yamu_e((string) $dashboardCard['value']); ?></span>
                                             </div>
                                             <div class="driver-overview-icon">
-                                                <i class="<?php echo carzo_e($dashboardCard['icon']); ?>"></i>
+                                                <i class="<?php echo yamu_e($dashboardCard['icon']); ?>"></i>
                                             </div>
                                         </div>
                                     <?php } ?>

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Disputes";
 include 'includes/config.php';
 
@@ -15,7 +15,7 @@ $sql = "SELECT c.*, b.booking_No, v.vehicle_title, u.full_name AS complainant_na
         WHERE 1 = 1";
 
 if (in_array($statusFilter, $allowedStatuses, true)) {
-    $sql .= " AND c.status = '" . carzo_escape($conn, $statusFilter) . "'";
+    $sql .= " AND c.status = '" . yamu_escape($conn, $statusFilter) . "'";
 }
 
 $sql .= " ORDER BY c.created_at DESC, c.complaint_id DESC";
@@ -39,7 +39,7 @@ $result = mysqli_query($conn, $sql);
                         <select name="status">
                             <option value="">All Statuses</option>
                             <?php foreach ($allowedStatuses as $allowedStatus) { ?>
-                                <option value="<?php echo carzo_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo carzo_e(ucfirst(str_replace('_', ' ', $allowedStatus))); ?></option>
+                                <option value="<?php echo yamu_e($allowedStatus); ?>" <?php echo $statusFilter === $allowedStatus ? 'selected' : ''; ?>><?php echo yamu_e(ucfirst(str_replace('_', ' ', $allowedStatus))); ?></option>
                             <?php } ?>
                         </select>
                         <button type="submit" class="btn second-btn">Filter</button>
@@ -63,12 +63,12 @@ $result = mysqli_query($conn, $sql);
                         <?php if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['booking_No']); ?></td>
-                                    <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                    <td><?php echo carzo_e($row['complainant_name']); ?></td>
-                                    <td><?php echo carzo_e($row['subject']); ?></td>
-                                    <td><?php echo carzo_e($row['category']); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
+                                    <td><?php echo yamu_e($row['booking_No']); ?></td>
+                                    <td><?php echo yamu_e($row['vehicle_title']); ?></td>
+                                    <td><?php echo yamu_e($row['complainant_name']); ?></td>
+                                    <td><?php echo yamu_e($row['subject']); ?></td>
+                                    <td><?php echo yamu_e($row['category']); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['status'])); ?>"><?php echo yamu_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
                                     <td class="action-cell"><div class="table-actions"><a href="dispute-view.php?complaint_id=<?php echo (int) $row['complaint_id']; ?>" class="Status-active-badge">View</a></div></td>
                                 </tr>
                             <?php }

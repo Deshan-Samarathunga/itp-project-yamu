@@ -1,21 +1,22 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     require_once __DIR__ . '/includes/booking-management.php';
-    carzo_start_session();
-carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verified'], 'access-denied.php');
+    yamu_start_session();
+yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'access-denied.php');
     include 'includes/config.php';
     $page_title = "Driver Bookings";
 
     $driverId = (int) ($_SESSION['user']['user_ID'] ?? 0);
     $statusFilter = trim((string) ($_GET['status'] ?? ''));
-    $sql = "SELECT b.*, v.vehicle_title, u.full_name AS customer_name, u.email AS customer_email
+    $sql = "SELECT b.*, COALESCE(v.vehicle_title, 'Driver Service') AS service_name, u.full_name AS customer_name, u.email AS customer_email
             FROM booking b
             LEFT JOIN vehicles v ON v.vehicle_id = b.vehicle_ID
             LEFT JOIN users u ON u.user_id = b.user_ID
-            WHERE b.driver_id = {$driverId}";
+            WHERE b.driver_id = {$driverId}
+              AND b.vehicle_ID IS NULL";
 
     if ($statusFilter !== '') {
-        $sql .= " AND b.booking_status = '" . carzo_escape($conn, carzo_booking_normalize_status($statusFilter)) . "'";
+        $sql .= " AND b.booking_status = '" . yamu_escape($conn, yamu_booking_normalize_status($statusFilter)) . "'";
     }
 
     $sql .= ' ORDER BY b.created_at DESC, b.booking_id DESC';
@@ -57,7 +58,7 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                         <thead>
                             <tr>
                                 <th>Booking No</th>
-                                <th>Vehicle</th>
+                                <th>Service</th>
                                 <th>Customer</th>
                                 <th>Dates</th>
                                 <th>Total</th>
@@ -69,15 +70,15 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                         <tbody class="table-body">
                             <?php if ($result && mysqli_num_rows($result) > 0) {
                                 while ($row = mysqli_fetch_assoc($result)) {
-                                    $status = carzo_booking_normalize_status($row['booking_status']); ?>
+                                    $status = yamu_booking_normalize_status($row['booking_status']); ?>
                                     <tr>
-                                        <td><?php echo carzo_e($row['booking_No']); ?></td>
-                                        <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                        <td><?php echo carzo_e($row['customer_name']); ?><br><small><?php echo carzo_e($row['customer_email']); ?></small></td>
-                                        <td><?php echo carzo_e($row['start_Data']); ?><br>to<br><?php echo carzo_e($row['end_Date']); ?></td>
-                                        <td><?php echo carzo_e($row['total']); ?></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span></td>
-                                        <td><span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>"><?php echo carzo_e(ucfirst($row['payment_status'])); ?></span></td>
+                                        <td><?php echo yamu_e($row['booking_No']); ?></td>
+                                        <td><?php echo yamu_e($row['service_name']); ?></td>
+                                        <td><?php echo yamu_e($row['customer_name']); ?><br><small><?php echo yamu_e($row['customer_email']); ?></small></td>
+                                        <td><?php echo yamu_e($row['start_Data']); ?><br>to<br><?php echo yamu_e($row['end_Date']); ?></td>
+                                        <td><?php echo yamu_e($row['total']); ?></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($status)); ?>"><?php echo yamu_e(ucfirst($status)); ?></span></td>
+                                        <td><span class="<?php echo yamu_e(yamu_badge_class($row['payment_status'])); ?>"><?php echo yamu_e(ucfirst($row['payment_status'])); ?></span></td>
                                         <td class="action-cell">
                                             <div class="table-actions">
                                             <?php if ($status === 'pending') { ?>
@@ -86,7 +87,7 @@ carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending', 'verifi
                                             <?php } elseif ($status === 'confirmed') { ?>
                                                 <a href="includes/driver-booking-process.php?action=complete&booking_id=<?php echo $row['booking_id']; ?>" class="edit-badge" title="Complete"><i class="ri-flag-fill"></i></a>
                                             <?php } else { ?>
-                                                <span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span>
+                                                <span class="<?php echo yamu_e(yamu_badge_class($status)); ?>"><?php echo yamu_e(ucfirst($status)); ?></span>
                                             <?php } ?>
                                             </div>
                                         </td>

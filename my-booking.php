@@ -1,8 +1,8 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
     require_once __DIR__ . '/includes/booking-management.php';
-    carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
+    yamu_start_session();
+yamu_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
     $page_title = "My Bookings"; 
     include 'includes/config.php'; // Database Connection
 ?>
@@ -35,8 +35,8 @@ carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'ac
                         <thead>
                             <tr>
                                 <th>Bookings No.</th>
-                                <th>Vehicle</th>
-                                <th>Driver</th>
+                                <th>Service</th>
+                                <th>Provider</th>
                                 <th>Start Date</th>
                                 <th>To Date</th>
                                 <th>Amount (Rs.)</th>
@@ -47,7 +47,7 @@ carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'ac
                         </thead>
                         <tbody class="table-body">
                         <?php
-                            $sql = "SELECT b.*, v.vehicle_title, d.full_name AS driver_name,
+                            $sql = "SELECT b.*, COALESCE(v.vehicle_title, 'Driver Service') AS service_name, d.full_name AS driver_name,
                                            (SELECT MAX(payment_id) FROM payments p WHERE p.booking_id = b.booking_id) AS latest_payment_id,
                                            (SELECT COUNT(*) FROM reviews r WHERE r.booking_id = b.booking_id AND r.customer_id = b.user_ID) AS review_count,
                                            (SELECT COUNT(*) FROM complaints c WHERE c.booking_id = b.booking_id AND c.complainant_user_id = b.user_ID) AS dispute_count
@@ -61,26 +61,26 @@ carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'ac
                             if ($result->num_rows > 0) {
                                 // output data of each row
                                 while ($row = $result->fetch_assoc()) {
-                                    $status = carzo_booking_normalize_status($row['booking_status'] ?? 'pending');
+                                    $status = yamu_booking_normalize_status($row['booking_status'] ?? 'pending');
                                     ?>
                                     <tr>
                                         <td><?php echo $row['booking_No']; ?></td>
-                                        <td><?php echo carzo_e($row['vehicle_title']); ?></td>
-                                        <td><?php echo carzo_e($row['driver_name']); ?></td>
+                                        <td><?php echo yamu_e($row['service_name']); ?></td>
+                                        <td><?php echo yamu_e($row['driver_name'] ?: 'Provider'); ?></td>
                                         <td><?php echo $row['start_Data']; ?></td>
                                         <td><?php echo $row['end_Date']; ?></td>
                                         <td>
-                                            <?php echo carzo_money($row['total']); ?><br>
-                                            <small>Final: <?php echo carzo_money($row['final_amount'] ?: $row['total']); ?></small>
+                                            <?php echo yamu_money($row['total']); ?><br>
+                                            <small>Final: <?php echo yamu_money($row['final_amount'] ?: $row['total']); ?></small>
                                         </td>
                                         <td>
-                                            <span class="<?php echo carzo_e(carzo_badge_class($row['payment_status'])); ?>">
-                                                <?php echo carzo_e(ucfirst($row['payment_status'])); ?>
+                                            <span class="<?php echo yamu_e(yamu_badge_class($row['payment_status'])); ?>">
+                                                <?php echo yamu_e(ucfirst($row['payment_status'])); ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="<?php echo carzo_e(carzo_badge_class($status)); ?>">
-                                                <?php echo carzo_e(ucfirst($status)); ?>
+                                            <span class="<?php echo yamu_e(yamu_badge_class($status)); ?>">
+                                                <?php echo yamu_e(ucfirst($status)); ?>
                                             </span>
                                         </td>
                                         <td class="action-cell">
@@ -88,10 +88,10 @@ carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'ac
                                                 <?php if (in_array($status, ['pending', 'confirmed'], true)) { ?>
                                                     <a href="includes/booking-process.php?cancelBooking=<?php echo $row['booking_id']; ?>" class="del-badge" title="Cancel"><i class="ri-close-fill"></i></a>
                                                 <?php } ?>
-                                                <?php if (carzo_booking_normalize_payment_status($row['payment_status']) !== 'paid' && in_array($status, ['pending', 'confirmed'], true)) { ?>
+                                                <?php if (yamu_booking_normalize_payment_status($row['payment_status']) !== 'paid' && in_array($status, ['pending', 'confirmed'], true)) { ?>
                                                     <a href="booking-payment.php?booking_id=<?php echo $row['booking_id']; ?>" class="edit-badge" title="Pay"><i class="ri-bank-card-line"></i></a>
                                                 <?php } ?>
-                                                <?php if ((int) ($row['latest_payment_id'] ?? 0) > 0 && carzo_booking_normalize_payment_status($row['payment_status']) === 'paid') { ?>
+                                                <?php if ((int) ($row['latest_payment_id'] ?? 0) > 0 && yamu_booking_normalize_payment_status($row['payment_status']) === 'paid') { ?>
                                                     <a href="invoice.php?payment_id=<?php echo (int) $row['latest_payment_id']; ?>" class="edit-badge" title="Invoice"><i class="ri-file-text-line"></i></a>
                                                 <?php } ?>
                                                 <a href="booking-dispute.php?booking_id=<?php echo $row['booking_id']; ?>" class="edit-badge" title="Dispute"><i class="ri-chat-3-line"></i></a>

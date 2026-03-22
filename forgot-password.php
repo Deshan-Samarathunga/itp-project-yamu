@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/includes/auth.php';
-    carzo_start_session();
+    yamu_start_session();
     $page_title = "Forgot Password";
     $previewLink = $_SESSION['password_reset_preview'] ?? '';
     unset($_SESSION['password_reset_preview']);
@@ -38,7 +38,7 @@
                 <?php if ($previewLink !== '') { ?>
                     <div class="alert alert-success" style="margin-top: 16px;">
                         Development reset link:
-                        <a href="<?php echo carzo_e($previewLink); ?>"><?php echo carzo_e($previewLink); ?></a>
+                        <a href="<?php echo yamu_e($previewLink); ?>"><?php echo yamu_e($previewLink); ?></a>
                     </div>
                 <?php } ?>
                 <p><a href="signin.php">Back to Sign In</a></p>

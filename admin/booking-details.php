@@ -1,15 +1,15 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/booking-management.php';
-carzo_start_session();
-carzo_require_admin('index.php');
+yamu_start_session();
+yamu_require_admin('index.php');
 $page_title = "Booking";
 include 'includes/config.php';
 
 $bookingId = isset($_GET['bookingID']) ? (int) $_GET['bookingID'] : (isset($_GET['booking_id']) ? (int) $_GET['booking_id'] : 0);
 
 if ($bookingId <= 0) {
-    carzo_redirect_with_message('bookings.php', 'error', 'Booking not found');
+    yamu_redirect_with_message('bookings.php', 'error', 'Booking not found');
 }
 
 $sql = "SELECT b.*,
@@ -35,12 +35,12 @@ $result = mysqli_query($conn, $sql);
 $record = ($result && mysqli_num_rows($result) > 0) ? mysqli_fetch_assoc($result) : null;
 
 if (!$record) {
-    carzo_redirect_with_message('bookings.php', 'error', 'Booking not found');
+    yamu_redirect_with_message('bookings.php', 'error', 'Booking not found');
 }
 
-$status = carzo_booking_normalize_status($record['booking_status'] ?? 'pending');
-$paymentStatus = carzo_booking_normalize_payment_status($record['payment_status'] ?? 'pending');
-$totalDays = carzo_booking_total_days($record['start_Data'], $record['end_Date']);
+$status = yamu_booking_normalize_status($record['booking_status'] ?? 'pending');
+$paymentStatus = yamu_booking_normalize_payment_status($record['payment_status'] ?? 'pending');
+$totalDays = yamu_booking_total_days($record['start_Data'], $record['end_Date']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,27 +60,27 @@ $totalDays = carzo_booking_total_days($record['start_Data'], $record['end_Date']
             <div class="main-cards">
                 <div class="card">
                     <div class="card-title">
-                        <?php echo carzo_e($record['booking_No']); ?> Booking Details
+                        <?php echo yamu_e($record['booking_No']); ?> Booking Details
                     </div>
                     <table>
                         <h4 class="table-title">Customer Details</h4>
                         <tr>
                             <th>Booking No.</th>
-                            <td><?php echo carzo_e($record['booking_No']); ?></td>
+                            <td><?php echo yamu_e($record['booking_No']); ?></td>
                             <th>Name</th>
-                            <td><?php echo carzo_e($record['customer_name']); ?></td>
+                            <td><?php echo yamu_e($record['customer_name']); ?></td>
                         </tr>
                         <tr>
                             <th>Email</th>
-                            <td><?php echo carzo_e($record['customer_email']); ?></td>
+                            <td><?php echo yamu_e($record['customer_email']); ?></td>
                             <th>Contact No</th>
-                            <td><?php echo carzo_e($record['customer_phone']); ?></td>
+                            <td><?php echo yamu_e($record['customer_phone']); ?></td>
                         </tr>
                         <tr>
                             <th>Address</th>
-                            <td><?php echo carzo_e($record['customer_address']); ?></td>
+                            <td><?php echo yamu_e($record['customer_address']); ?></td>
                             <th>City</th>
-                            <td><?php echo carzo_e($record['customer_city']); ?></td>
+                            <td><?php echo yamu_e($record['customer_city']); ?></td>
                         </tr>
                     </table>
 
@@ -89,15 +89,15 @@ $totalDays = carzo_booking_total_days($record['start_Data'], $record['end_Date']
                         <h4 class="table-title">Driver Details</h4>
                         <tr>
                             <th>Driver Name</th>
-                            <td><?php echo carzo_e($record['driver_name']); ?></td>
+                            <td><?php echo yamu_e($record['driver_name']); ?></td>
                             <th>Email</th>
-                            <td><?php echo carzo_e($record['driver_email']); ?></td>
+                            <td><?php echo yamu_e($record['driver_email']); ?></td>
                         </tr>
                         <tr>
                             <th>Phone</th>
-                            <td><?php echo carzo_e($record['driver_phone']); ?></td>
+                            <td><?php echo yamu_e($record['driver_phone']); ?></td>
                             <th>Vehicle Reg. No.</th>
-                            <td><?php echo carzo_e($record['registration_number']); ?></td>
+                            <td><?php echo yamu_e($record['registration_number']); ?></td>
                         </tr>
                     </table>
 
@@ -106,39 +106,39 @@ $totalDays = carzo_booking_total_days($record['start_Data'], $record['end_Date']
                         <h4 class="table-title">Booking Details</h4>
                         <tr>
                             <th>Vehicle Name</th>
-                            <td><?php echo carzo_e($record['vehicle_title']); ?></td>
+                            <td><?php echo yamu_e($record['vehicle_title']); ?></td>
                             <th>Booking Date</th>
-                            <td><?php echo carzo_e($record['booking_Date']); ?></td>
+                            <td><?php echo yamu_e($record['booking_Date']); ?></td>
                         </tr>
                         <tr>
                             <th>From Date</th>
-                            <td><?php echo carzo_e($record['start_Data']); ?></td>
+                            <td><?php echo yamu_e($record['start_Data']); ?></td>
                             <th>To Date</th>
-                            <td><?php echo carzo_e($record['end_Date']); ?></td>
+                            <td><?php echo yamu_e($record['end_Date']); ?></td>
                         </tr>
                         <tr>
                             <th>Total Days</th>
                             <td><?php echo (int) $totalDays; ?></td>
                             <th>Rent Per Day</th>
-                            <td><?php echo carzo_e($record['price']); ?></td>
+                            <td><?php echo yamu_e($record['price']); ?></td>
                         </tr>
                         <tr>
                             <th>Location</th>
-                            <td><?php echo carzo_e($record['location']); ?></td>
+                            <td><?php echo yamu_e($record['location']); ?></td>
                             <th>Grand Total</th>
-                            <td><?php echo carzo_e($record['total']); ?></td>
+                            <td><?php echo yamu_e($record['total']); ?></td>
                         </tr>
                         <tr>
                             <th>Booking Status</th>
-                            <td><span class="<?php echo carzo_e(carzo_badge_class($status)); ?>"><?php echo carzo_e(ucfirst($status)); ?></span></td>
+                            <td><span class="<?php echo yamu_e(yamu_badge_class($status)); ?>"><?php echo yamu_e(ucfirst($status)); ?></span></td>
                             <th>Payment Status</th>
-                            <td><span class="<?php echo carzo_e(carzo_badge_class($paymentStatus)); ?>"><?php echo carzo_e(ucfirst($paymentStatus)); ?></span></td>
+                            <td><span class="<?php echo yamu_e(yamu_badge_class($paymentStatus)); ?>"><?php echo yamu_e(ucfirst($paymentStatus)); ?></span></td>
                         </tr>
                         <tr>
                             <th>Last Update Date</th>
-                            <td><?php echo carzo_e($record['updated_at'] ?: $record['update_Date']); ?></td>
+                            <td><?php echo yamu_e($record['updated_at'] ?: $record['update_Date']); ?></td>
                             <th>Completed / Cancelled</th>
-                            <td><?php echo carzo_e($record['completed_at'] ?: $record['cancelled_at']); ?></td>
+                            <td><?php echo yamu_e($record['completed_at'] ?: $record['cancelled_at']); ?></td>
                         </tr>
                     </table>
 

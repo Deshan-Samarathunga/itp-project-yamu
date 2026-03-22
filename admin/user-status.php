@@ -1,18 +1,18 @@
 <?php
-    require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php', 'access-denied.php');
-    include 'includes/config.php';
-    $page_title = "User Status";
+require_once __DIR__ . '/../includes/auth.php';
+yamu_start_session();
+yamu_require_admin('index.php', 'access-denied.php');
+include 'includes/config.php';
 
-    $userId = (int) ($_GET['user_id'] ?? 0);
-    $user = carzo_fetch_user_by_id($conn, $userId);
+$page_title = 'User Status';
+$userId = (int) ($_GET['user_id'] ?? 0);
+$user = yamu_fetch_user_by_id($conn, $userId);
 
-    if (!$user) {
-        carzo_redirect_with_message('users.php', 'error', 'User not found');
-    }
+if (!$user) {
+    yamu_redirect_with_message('users.php', 'error', 'User not found');
+}
 
-    $statuses = ['active', 'pending', 'verified', 'suspended', 'rejected', 'deactivated'];
+$statuses = ['active', 'suspended', 'deactivated'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,12 +29,13 @@
             <h2>Account Status Management</h2>
             <div class="main-cards">
                 <div class="card">
-                    <h3><?php echo carzo_e($user['full_name']); ?> (<?php echo carzo_e($user['email']); ?>)</h3>
-                    <p>Current Status:
-                        <span class="<?php echo carzo_e(carzo_badge_class($user['account_status'])); ?>">
-                            <?php echo carzo_e(ucfirst($user['account_status'])); ?>
+                    <h3><?php echo yamu_e($user['full_name']); ?> (<?php echo yamu_e($user['email']); ?>)</h3>
+                    <p>Current Snapshot Status:
+                        <span class="<?php echo yamu_e(yamu_badge_class($user['account_status'])); ?>">
+                            <?php echo yamu_e(ucfirst($user['account_status'])); ?>
                         </span>
                     </p>
+                    <p>Use this page for global user access. Driver and staff verification states stay managed from the verification page.</p>
 
                     <form action="includes/user-role-management.php" method="POST" class="signup-form">
                         <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
@@ -43,8 +44,8 @@
                             <label for="account_status">Set New Status:</label>
                             <select name="account_status" id="account_status">
                                 <?php foreach ($statuses as $status) { ?>
-                                    <option value="<?php echo carzo_e($status); ?>" <?php echo ($user['account_status'] === $status) ? 'selected' : ''; ?>>
-                                        <?php echo carzo_e(ucfirst($status)); ?>
+                                    <option value="<?php echo yamu_e($status); ?>" <?php echo ($user['account_status'] === $status) ? 'selected' : ''; ?>>
+                                        <?php echo yamu_e(ucfirst($status)); ?>
                                     </option>
                                 <?php } ?>
                             </select>

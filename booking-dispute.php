@@ -1,21 +1,21 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dispute-management.php';
-carzo_start_session();
-carzo_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
+yamu_start_session();
+yamu_require_user_roles(['customer'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 $page_title = "Booking Dispute";
 include 'includes/config.php';
 
 $customerId = (int) ($_SESSION['user']['user_ID'] ?? 0);
 $bookingId = isset($_GET['booking_id']) ? (int) $_GET['booking_id'] : 0;
-$booking = carzo_booking_fetch($conn, $bookingId);
+$booking = yamu_booking_fetch($conn, $bookingId);
 
 if (!$booking || (int) ($booking['user_ID'] ?? 0) !== $customerId) {
-    carzo_redirect_with_message('my-booking.php', 'error', 'Booking not found');
+    yamu_redirect_with_message('my-booking.php', 'error', 'Booking not found');
 }
 
-$bookingInfoResult = mysqli_query($conn, "SELECT b.booking_No, v.vehicle_title FROM booking b LEFT JOIN vehicles v ON v.vehicle_id = b.vehicle_ID WHERE b.booking_id = {$bookingId} LIMIT 1");
-$bookingInfo = ($bookingInfoResult && mysqli_num_rows($bookingInfoResult) > 0) ? mysqli_fetch_assoc($bookingInfoResult) : ['booking_No' => '', 'vehicle_title' => ''];
+$bookingInfoResult = mysqli_query($conn, "SELECT b.booking_No, COALESCE(v.vehicle_title, 'Driver Service') AS service_name FROM booking b LEFT JOIN vehicles v ON v.vehicle_id = b.vehicle_ID WHERE b.booking_id = {$bookingId} LIMIT 1");
+$bookingInfo = ($bookingInfoResult && mysqli_num_rows($bookingInfoResult) > 0) ? mysqli_fetch_assoc($bookingInfoResult) : ['booking_No' => '', 'service_name' => ''];
 $existingResult = mysqli_query($conn, "SELECT * FROM complaints WHERE booking_id = {$bookingId} AND complainant_user_id = {$customerId} ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
@@ -32,11 +32,11 @@ $existingResult = mysqli_query($conn, "SELECT * FROM complaints WHERE booking_id
                 <h3>Raise a Dispute</h3>
                 <div class="form-group">
                     <label>Booking No.</label>
-                    <input type="text" value="<?php echo carzo_e($bookingInfo['booking_No']); ?>" readonly>
+                    <input type="text" value="<?php echo yamu_e($bookingInfo['booking_No']); ?>" readonly>
                 </div>
                 <div class="form-group">
-                    <label>Vehicle</label>
-                    <input type="text" value="<?php echo carzo_e($bookingInfo['vehicle_title']); ?>" readonly>
+                    <label>Service</label>
+                    <input type="text" value="<?php echo yamu_e($bookingInfo['service_name']); ?>" readonly>
                 </div>
                 <form action="includes/dispute-process.php" method="POST" enctype="multipart/form-data" class="signup-form">
                     <input type="hidden" name="booking_id" value="<?php echo $bookingId; ?>">
@@ -81,11 +81,11 @@ $existingResult = mysqli_query($conn, "SELECT * FROM complaints WHERE booking_id
                         <?php if ($existingResult && mysqli_num_rows($existingResult) > 0) {
                             while ($row = mysqli_fetch_assoc($existingResult)) { ?>
                                 <tr>
-                                    <td><?php echo carzo_e($row['subject']); ?></td>
-                                    <td><?php echo carzo_e($row['category']); ?></td>
-                                    <td><span class="<?php echo carzo_e(carzo_badge_class($row['status'])); ?>"><?php echo carzo_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
-                                    <td><?php echo carzo_e($row['driver_response']); ?></td>
-                                    <td><?php echo carzo_e($row['admin_notes']); ?></td>
+                                    <td><?php echo yamu_e($row['subject']); ?></td>
+                                    <td><?php echo yamu_e($row['category']); ?></td>
+                                    <td><span class="<?php echo yamu_e(yamu_badge_class($row['status'])); ?>"><?php echo yamu_e(ucfirst(str_replace('_', ' ', $row['status']))); ?></span></td>
+                                    <td><?php echo yamu_e($row['driver_response']); ?></td>
+                                    <td><?php echo yamu_e($row['admin_notes']); ?></td>
                                 </tr>
                             <?php }
                         } else { ?>

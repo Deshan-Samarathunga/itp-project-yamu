@@ -1,7 +1,18 @@
 <?php
-    $page_title = "Car Listing"; 
-    session_start(); // Start the session
-    include 'includes/config.php'; // Database Connection
+$page_title = 'Car Listing';
+require_once __DIR__ . '/includes/auth.php';
+yamu_start_session();
+include 'includes/config.php';
+
+$hasUserRolesTable = yamu_table_exists($conn, 'user_roles');
+$staffRoleJoin = $hasUserRolesTable
+    ? "INNER JOIN user_roles ur_staff
+         ON ur_staff.user_id = v.owner_user_id
+        AND ur_staff.role_key = 'staff'
+        AND ur_staff.role_status IN ('active', 'verified')
+        AND ur_staff.verification_status IN ('approved', 'verified')"
+    : '';
+$staffVisibilityWhere = $hasUserRolesTable ? '' : "AND owner.role = 'staff' AND owner.account_status = 'active'";
 ?>
 
 <!DOCTYPE html>
@@ -32,7 +43,13 @@
 
 
             <?php 
-                $sql = "SELECT * FROM vehicles WHERE listing_status = 'approved' ORDER BY COALESCE(updated_at, reg_date) DESC, vehicle_id DESC";
+                $sql = "SELECT v.*
+                        FROM vehicles v
+                        LEFT JOIN users owner ON owner.user_id = v.owner_user_id
+                        {$staffRoleJoin}
+                        WHERE v.listing_status = 'approved'
+                          {$staffVisibilityWhere}
+                        ORDER BY COALESCE(v.updated_at, v.reg_date) DESC, v.vehicle_id DESC";
                 $result = mysqli_query($conn, $sql);
       
                 if ($result->num_rows > 0) {

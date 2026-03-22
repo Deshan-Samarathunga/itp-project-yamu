@@ -1,7 +1,7 @@
 <?php
     require_once __DIR__ . '/../includes/auth.php';
-    carzo_start_session();
-    carzo_require_admin('index.php');
+    yamu_start_session();
+    yamu_require_admin('index.php');
     $page_title = "Users";
 ?>
 <!DOCTYPE html>
@@ -53,7 +53,6 @@
                                 <option value="customer">Customer</option>
                                 <option value="driver">Driver</option>
                                 <option value="staff">Staff</option>
-                                <option value="admin">Admin</option>
                             </select>
                         </div>
                         <div class="form-group">

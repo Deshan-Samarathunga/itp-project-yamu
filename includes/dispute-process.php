@@ -1,11 +1,11 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/dispute-management.php';
-carzo_start_session();
-carzo_require_user_roles(['customer'], '../signin.php', ['active', 'verified'], '../access-denied.php');
+yamu_start_session();
+yamu_require_user_roles(['customer'], '../signin.php', ['active', 'verified'], '../access-denied.php');
 include 'config.php';
 
-function carzo_store_dispute_attachment($fieldName)
+function yamu_store_dispute_attachment($fieldName)
 {
     if (!isset($_FILES[$fieldName]) || empty($_FILES[$fieldName]['name'])) {
         return '';
@@ -38,23 +38,23 @@ if (isset($_POST['submitDispute'])) {
     $subject = trim((string) ($_POST['subject'] ?? ''));
     $category = trim((string) ($_POST['category'] ?? ''));
     $description = trim((string) ($_POST['description'] ?? ''));
-    $booking = carzo_booking_fetch($conn, $bookingId);
+    $booking = yamu_booking_fetch($conn, $bookingId);
 
     if (!$booking || (int) ($booking['user_ID'] ?? 0) !== $customerId) {
-        carzo_redirect_with_message('../my-disputes.php', 'error', 'Booking not found');
+        yamu_redirect_with_message('../my-disputes.php', 'error', 'Booking not found');
     }
 
-    $attachment = carzo_store_dispute_attachment('attachment');
+    $attachment = yamu_store_dispute_attachment('attachment');
     if ($attachment === false) {
-        carzo_redirect_with_message('../booking-dispute.php?booking_id=' . $bookingId, 'error', 'Unable to upload attachment');
+        yamu_redirect_with_message('../booking-dispute.php?booking_id=' . $bookingId, 'error', 'Unable to upload attachment');
     }
 
-    [$success, $message] = carzo_complaint_create($conn, $booking, $customerId, $subject, $category, $description, $attachment);
+    [$success, $message] = yamu_complaint_create($conn, $booking, $customerId, $subject, $category, $description, $attachment);
     if (!$success) {
-        carzo_redirect_with_message('../booking-dispute.php?booking_id=' . $bookingId, 'error', $message);
+        yamu_redirect_with_message('../booking-dispute.php?booking_id=' . $bookingId, 'error', $message);
     }
 
-    carzo_redirect_with_message('../my-disputes.php', 'msg', $message);
+    yamu_redirect_with_message('../my-disputes.php', 'msg', $message);
 }
 
 

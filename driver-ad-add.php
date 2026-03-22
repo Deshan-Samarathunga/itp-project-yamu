@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/driver-ad-options.php';
-carzo_start_session();
-carzo_require_user_roles(['driver'], 'signin.php', ['active', 'pending'], 'index.php');
+yamu_start_session();
+yamu_require_user_roles(['driver'], 'signin.php', ['active', 'verified'], 'access-denied.php');
 include 'includes/config.php';
 $page_title = 'Driver Ads';
-$serviceLocations = carzo_driver_service_locations();
-$languageOptions = carzo_driver_language_options();
-$driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
+$serviceLocations = yamu_driver_service_locations();
+$languageOptions = yamu_driver_language_options();
+$driverPhoto = yamu_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.png');
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +33,7 @@ $driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.
 
                         <div class="driver-photo-upload">
                             <div class="driver-photo-preview">
-                                <img src="<?php echo carzo_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
+                                <img src="<?php echo yamu_e($driverPhoto); ?>" alt="Driver photo" id="driverProfilePreview">
                             </div>
                             <div class="driver-photo-copy">
                                 <h4>Driver Photo</h4>
@@ -56,7 +56,7 @@ $driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.
                             <select name="service_location" id="service_location" required>
                                 <option value="">--Select Service Location--</option>
                                 <?php foreach ($serviceLocations as $serviceLocation) { ?>
-                                    <option value="<?php echo carzo_e($serviceLocation); ?>"><?php echo carzo_e($serviceLocation); ?></option>
+                                    <option value="<?php echo yamu_e($serviceLocation); ?>"><?php echo yamu_e($serviceLocation); ?></option>
                                 <?php } ?>
                             </select>
                         </div>
@@ -65,7 +65,7 @@ $driverPhoto = carzo_profile_avatar_path($_SESSION['user']['avatar'] ?? 'avatar.
                             <select name="languages" id="languages" required>
                                 <option value="">--Select Languages--</option>
                                 <?php foreach ($languageOptions as $languageOption) { ?>
-                                    <option value="<?php echo carzo_e($languageOption); ?>"><?php echo carzo_e($languageOption); ?></option>
+                                    <option value="<?php echo yamu_e($languageOption); ?>"><?php echo yamu_e($languageOption); ?></option>
                                 <?php } ?>
                             </select>
                         </div>
