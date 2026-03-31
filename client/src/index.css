@@ -350,13 +350,15 @@ input:focus, select:focus, textarea:focus {
 .dashboard-layout { display: flex; min-height: 100vh; padding-top: 64px; }
 .sidebar {
   width: 260px;
-  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
   background: var(--primary);
-  padding: 1.5rem 0;
+  padding: 1.5rem 0 0;
   position: fixed;
   left: 0;
   top: 64px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .sidebar-user {
   text-align: center;
@@ -374,6 +376,12 @@ input:focus, select:focus, textarea:focus {
 }
 .sidebar-user h4 { color: var(--white); font-size: 1rem; }
 .sidebar-user span { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
 .sidebar-nav a, .sidebar-nav button {
   display: flex;
   align-items: center;
